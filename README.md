@@ -1,4 +1,4 @@
-# Air724UG 短信转发 & 语音信箱
+# Air724UG 短信转发 & 来电通知 & 语音信箱
 
 ## 使用方法
 
@@ -26,7 +26,7 @@ config = {
     -- 存储桶需设置为 <私有读写>, 并授权 <所有用户> <指定目录> 的 <PutObject> 操作
     UPLOAD_URL = "http://xxx-123456.cos.ap-nanjing.myqcloud.com/this-is-the-path",
 
-    -- 其他配置 ..
+    -- 其他配置...
 }
 ```
 
