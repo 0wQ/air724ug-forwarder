@@ -17,7 +17,7 @@ config = {
     -- Bark 通知配置, https://github.com/Finb/Bark
     BARK_KEY = "",
 
-    -- Telegram 通知配置
+    -- Telegram 通知配置, https://github.com/0wQ/telegram-notify
     TELEGRAM_PROXY_API = "",
     TELEGRAM_TOKEN = "",
     TELEGRAM_CHAT_ID = "",

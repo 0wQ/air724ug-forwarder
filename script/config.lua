@@ -2,13 +2,13 @@ config = {
     -- 通知类型 pushdeer, bark, telegram
     NOTIFY_TYPE = "pushdeer",
 
-    -- PushDeer 通知配置, https://www.pushdeer.com/
+    -- PushDeer 通知配置, https://www.pushdeer.com
     PUSHDEER_KEY = "",
 
     -- Bark 通知配置, https://github.com/Finb/Bark
     BARK_KEY = "",
 
-    -- Telegram 通知配置
+    -- Telegram 通知配置, https://github.com/0wQ/telegram-notify
     TELEGRAM_PROXY_API = "",
     TELEGRAM_TOKEN = "",
     TELEGRAM_CHAT_ID = "",
