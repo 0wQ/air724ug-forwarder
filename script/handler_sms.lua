@@ -92,21 +92,30 @@ local function smsContentMatcher(sender_number, sms_content)
 
         log.info("短信内容匹配", "发送短信给" .. receiver_number .. ": " .. sms_content_to_be_sent)
 
-        -- 发送短信
-        sys.taskInit(sms.send, receiver_number, sms_content_to_be_sent)
-        -- 发送通知
-        util_notify.send(
-            {
-                sender_number .. "的短信触发了<发送短信>",
-                "",
-                "收件人号码: " .. receiver_number,
-                "短信内容: " .. sms_content_to_be_sent,
-                "#CONTROL"
-            }
-        )
-        return
-    end
-end
+         -- 发短信之前要先把内容转码成GB2312
+         local gb2312Content  = utf8ToGb2312(sms_content_to_be_sent)
+         -- 发送短信
+         sys.taskInit(sms.send, receiver_number, gb2312Content)
+         -- 发送通知
+         util_notify.send(
+             {
+                 sender_number .. "的短信触发了<发送短信>",
+                 "",
+                 "收件人号码: " .. receiver_number,
+                 "短信内容: " .. sms_content_to_be_sent,
+                 "#CONTROL"
+             }
+         )
+         return
+     end
+ end
+ 
+ function utf8ToGb2312(utf8s)
+     local cd = iconv.open("ucs2", "utf8")
+     local ucs2s = cd:iconv(utf8s)
+     cd = iconv.open("gb2312", "ucs2")
+     return cd:iconv(ucs2s)
+ end
 
 -- 收到短信回调
 local function smsCallback(sender_number, data, datetime)
