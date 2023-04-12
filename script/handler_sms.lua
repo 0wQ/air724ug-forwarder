@@ -6,6 +6,7 @@ require "log"
 require "cc"
 require "config"
 require "util_notify"
+require "iconv"
 
 
 -- 判断号码是否在配置的白名单里
