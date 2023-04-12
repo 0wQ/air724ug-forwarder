@@ -7,6 +7,17 @@ require "cc"
 require "config"
 require "util_notify"
 
+
+-- 判断号码是否在配置的白名单里
+local function isElementInTable(myTable, target)
+    for _, value in ipairs(myTable) do
+        if value == target then
+            return true
+        end
+    end
+    return false
+end
+
 local function isAllowNumber(number, sender_number)
     local my_number = sim.getNumber()
     if number == nil then
@@ -30,9 +41,11 @@ local function isAllowNumber(number, sender_number)
     if "86" .. number == sender_number then
         return false
     end
+    isInWhiteList = isElementInTable(config.SMS_ALLOW_NUMBER, sender_number)
+    log.info("是否在白名单", isInWhiteList)
     if config.SMS_ALLOW_NUMBER == nil or config.SMS_ALLOW_NUMBER == "" then -- 没设置白名单号码, 允许所有号码触发
         return true
-    elseif sender_number == config.SMS_ALLOW_NUMBER then -- 设置了白名单号码, 只允许白名单号码触发
+    elseif isInWhiteList then -- 设置了白名单号码, 只允许白名单号码触发
         return true
     else
         return false
