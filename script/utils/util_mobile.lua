@@ -44,7 +44,10 @@ function queryTraffic()
 
     local oper = oper_data[mcc_mnc]
     if oper and oper[3] then
-        sms.send(oper[3][1], oper[3][2])
+        -- 发短信之前要先把内容转码成 GB2312
+        local sms_content_to_be_sent_gb2312 = common.utf8ToGb2312(oper[3][2])
+        -- 发送短信
+        sys.taskInit(sms.send, oper[3][1], sms_content_to_be_sent_gb2312)
     else
         log.warn("util_mobile.queryTraffic", "查询流量代码未配置")
     end
