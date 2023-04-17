@@ -1,24 +1,3 @@
-require "sys"
-require "sms"
-require "sim"
-require "common"
-require "log"
-require "cc"
-require "config"
-require "util_notify"
-require "iconv"
-
-
--- 判断号码是否在配置的白名单里
-local function isElementInTable(myTable, target)
-    for _, value in ipairs(myTable) do
-        if value == target then
-            return true
-        end
-    end
-    return false
-end
-
 local function isAllowNumber(number, sender_number)
     local my_number = sim.getNumber()
     if number == nil then
@@ -64,11 +43,11 @@ local function smsContentMatcher(sender_number, sms_content)
 
     -- 判断号码符合要求
     if isAllowNumber(called_number, sender_number) then
-        log.info("短信内容匹配", "拨打电话", called_number)
+        log.info("handler_sms.smsContentMatcher", "拨打电话", called_number)
         -- 拨打电话
         sys.taskInit(cc.dial, called_number)
         -- 发送通知
-        util_notify.send(
+        util_notify.add(
             {
                 sender_number .. "的短信触发了<拨打电话>",
                 "",
@@ -91,51 +70,74 @@ local function smsContentMatcher(sender_number, sms_content)
             return
         end
 
-        log.info("短信内容匹配", "发送短信给" .. receiver_number .. ": " .. sms_content_to_be_sent)
+        log.info("handler_sms.smsContentMatcher", "发送短信给" .. receiver_number .. ": " .. sms_content_to_be_sent)
 
-         -- 发短信之前要先把内容转码成GB2312
-         local gb2312Content  = utf8ToGb2312(sms_content_to_be_sent)
-         -- 发送短信
-         sys.taskInit(sms.send, receiver_number, gb2312Content)
-         -- 发送通知
-         util_notify.send(
-             {
-                 sender_number .. "的短信触发了<发送短信>",
-                 "",
-                 "收件人号码: " .. receiver_number,
-                 "短信内容: " .. sms_content_to_be_sent,
-                 "#CONTROL"
-             }
-         )
-         return
-     end
- end
- 
- function utf8ToGb2312(utf8s)
-     local cd = iconv.open("ucs2", "utf8")
-     local ucs2s = cd:iconv(utf8s)
-     cd = iconv.open("gb2312", "ucs2")
-     return cd:iconv(ucs2s)
- end
+        -- 发送短信
+        sys.taskInit(sms.send, receiver_number, sms_content_to_be_sent)
+        -- 发送通知
+        util_notify.add(
+            {
+                sender_number .. "的短信触发了<发送短信>",
+                "",
+                "收件人号码: " .. receiver_number,
+                "短信内容: " .. sms_content_to_be_sent,
+                "#CONTROL"
+            }
+        )
+        return
+    end
+end
 
 -- 收到短信回调
 local function smsCallback(sender_number, data, datetime)
     -- 转换短信内容
     local sms_content = common.gb2312ToUtf8(data)
-    log.info("收到短信", sender_number, datetime, sms_content)
+    log.info("handler_sms.smsCallback", sender_number, datetime, sms_content)
 
     -- 发送通知
-    util_notify.send(
-        {
-            sms_content,
-            "",
-            "发件人号码: " .. sender_number,
-            "#SMS"
-        }
-    )
+    util_notify.add({sms_content, "", "发件人号码: " .. sender_number, "#SMS"})
 
     -- 短信内容匹配
     sys.taskInit(smsContentMatcher, sender_number, sms_content)
+
+    -- 判断音量
+    if nvm.get("AUDIO_VOLUME") == 0 or nvm.get("AUDIO_VOLUME") == nil then
+        return
+    end
+
+    -- 短信提示音
+    if not CALL_IN then
+        util_audio.play(4, "FILE", "/lua/audio_new_sms.mp3")
+    end
+
+    -- 判断 SMS_TTS 开关
+    if type(nvm.get("SMS_TTS")) ~= "number" or nvm.get("SMS_TTS") == 0 then
+        return
+    end
+
+    -- TTS 仅播报验证码
+    if nvm.get("SMS_TTS") >= 1 then
+        if sms_content:match("验证码") or sms_content:match("校验码") or sms_content:match("取件码") then
+            -- 提取发送者
+            local sender_name = sms_content:match("【(.+)】")
+            sender_name = sender_name or ""
+
+            -- 提取验证码 (至少4位数字)
+            local code = sms_content:match("%d%d%d%d+")
+
+            if code then
+                audio.setTTSSpeed(65)
+                sys.timerStart(util_audio.play, 1000 * 2, 5, "TTS", "[n1]收到" .. sender_name .. "验证码 " .. code)
+                return
+            end
+        end
+    end
+
+    -- TTS 播报全部短信内容
+    if nvm.get("SMS_TTS") == 2 then
+        audio.setTTSSpeed(70)
+        sys.timerStart(util_audio.play, 1000 * 2, 5, "TTS", "[n1]收到来自" .. sender_number .. "的短信，" .. sms_content)
+    end
 end
 
 -- 设置短信回调
