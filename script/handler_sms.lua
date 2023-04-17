@@ -6,6 +6,18 @@ require "log"
 require "cc"
 require "config"
 require "util_notify"
+require "iconv"
+
+
+-- 判断号码是否在配置的白名单里
+local function isElementInTable(myTable, target)
+    for _, value in ipairs(myTable) do
+        if value == target then
+            return true
+        end
+    end
+    return false
+end
 
 local function isAllowNumber(number, sender_number)
     local my_number = sim.getNumber()
@@ -30,9 +42,11 @@ local function isAllowNumber(number, sender_number)
     if "86" .. number == sender_number then
         return false
     end
+    isInWhiteList = isElementInTable(config.SMS_ALLOW_NUMBER, sender_number)
+    log.info("是否在白名单", isInWhiteList)
     if config.SMS_ALLOW_NUMBER == nil or config.SMS_ALLOW_NUMBER == "" then -- 没设置白名单号码, 允许所有号码触发
         return true
-    elseif sender_number == config.SMS_ALLOW_NUMBER then -- 设置了白名单号码, 只允许白名单号码触发
+    elseif isInWhiteList then -- 设置了白名单号码, 只允许白名单号码触发
         return true
     else
         return false
@@ -79,21 +93,30 @@ local function smsContentMatcher(sender_number, sms_content)
 
         log.info("短信内容匹配", "发送短信给" .. receiver_number .. ": " .. sms_content_to_be_sent)
 
-        -- 发送短信
-        sys.taskInit(sms.send, receiver_number, sms_content_to_be_sent)
-        -- 发送通知
-        util_notify.send(
-            {
-                sender_number .. "的短信触发了<发送短信>",
-                "",
-                "收件人号码: " .. receiver_number,
-                "短信内容: " .. sms_content_to_be_sent,
-                "#CONTROL"
-            }
-        )
-        return
-    end
-end
+         -- 发短信之前要先把内容转码成GB2312
+         local gb2312Content  = utf8ToGb2312(sms_content_to_be_sent)
+         -- 发送短信
+         sys.taskInit(sms.send, receiver_number, gb2312Content)
+         -- 发送通知
+         util_notify.send(
+             {
+                 sender_number .. "的短信触发了<发送短信>",
+                 "",
+                 "收件人号码: " .. receiver_number,
+                 "短信内容: " .. sms_content_to_be_sent,
+                 "#CONTROL"
+             }
+         )
+         return
+     end
+ end
+ 
+ function utf8ToGb2312(utf8s)
+     local cd = iconv.open("ucs2", "utf8")
+     local ucs2s = cd:iconv(utf8s)
+     cd = iconv.open("gb2312", "ucs2")
+     return cd:iconv(ucs2s)
+ end
 
 -- 收到短信回调
 local function smsCallback(sender_number, data, datetime)

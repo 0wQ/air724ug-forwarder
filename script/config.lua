@@ -33,5 +33,7 @@ config = {
     TTS_TEXT = "您好，机主当前无法接听电话，请在语音结束后留言，稍后将发送到机主，结束请挂机。",
 
     -- 允许发短信控制设备的号码, 如果为空, 则允许所有号码
+    -- 可以传table，支持多个号码作为白名单
+    -- SMS_ALLOW_NUMBER = {"18xxxxxxx","18xxxxxxx","18xxxxxxx","18xxxxxxx"},
     SMS_ALLOW_NUMBER = "",
 }
