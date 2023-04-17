@@ -116,8 +116,15 @@ local function smsCallback(sender_number, data, datetime)
     log.info("handler_sms.smsCallback", sender_number, datetime, sms_content)
 
     -- 发送通知
-    util_notify.add({sms_content, "", "发件人号码: " .. sender_number, "#SMS"})
-
+    util_notify.add(
+        {
+            sms_content,
+            "",
+            "发件号码: " .. sender_number,
+            "发件时间: " .. datetime,
+            "#SMS"
+        }
+    )
     -- 短信内容匹配
     sys.taskInit(smsContentMatcher, sender_number, sms_content)
 
