@@ -73,9 +73,9 @@ UPLOAD_URL = "http://xxx-123456.cos.ap-nanjing.myqcloud.com/{录音文件目录}
 
 -------------------------------------------------- 短信来电配置 --------------------------------------------------
 
--- 允许发短信控制设备的号码, 如果为空, 则允许所有号码
--- 短信内容示例: `SMS,10086,查询剩余流量`, `CALL,10086`
-SMS_ALLOW_NUMBER = ""
+-- 允许发短信控制设备的号码, 如果注释掉或者为空, 则允许所有号码
+-- SMS_CONTROL_WHITELIST_NUMBERS = {"18xxxxxxx", "18xxxxxxx", "18xxxxxxx", "18xxxxxxx"},
+SMS_CONTROL_WHITELIST_NUMBERS = {}
 
 -- 扬声器 TTS 播放短信内容, 0：关闭(默认)，1：仅验证码，2：全部
 SMS_TTS = 0
