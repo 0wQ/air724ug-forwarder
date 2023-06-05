@@ -144,8 +144,18 @@ end
 local function ttsCallback(result)
     log.info("handler_call.ttsCallback", "result:", result)
 
-    -- 延迟开始录音, 防止 TTS 播放时主动挂断电话, 会先触发 TTS 结束回调, 再触发挂断电话回调, 导致 reacrdStart() 判断到正在通话中
-    sys.timerStart(reacrdStart, 500)
+    -- 判断来电动作是否为接听后挂断
+    if nvm.get("CALL_IN_ACTION") == 3 then
+        -- 如果是接听后挂断，则不录音，直接返回
+        log.info("handler_call.callIncomingCallback", "来电动作", "接听后挂断")
+        util_notify.add({"来电号码: " .. CALL_NUMBER, "来电动作: 接听后挂断", "", "#CALL #CALL_IN"})
+        cc.hangUp(CALL_NUMBER)
+    else
+        -- 延迟开始录音, 防止 TTS 播放时主动挂断电话, 会先触发 TTS 结束回调, 再触发挂断电话回调, 导致 reacrdStart() 判断到正在通话中
+        sys.timerStart(reacrdStart, 500)
+        -- 发通知
+        util_notify.add({"来电号码: " .. CALL_NUMBER, "来电动作: 接听并录音", "", "#CALL #CALL_IN"})
+    end
 end
 
 -- 播放 TTS，播放结束后开始录音
@@ -158,7 +168,11 @@ local function tts()
         audio.play(7, "TTS", config.TTS_TEXT, 7, ttsCallback)
     else
         -- 播放音频文件
-        util_audio.audioStream("/lua/audio_call.amr", ttsCallback)
+        if nvm.get("CALL_IN_ACTION") == 3 then
+            util_audio.audioStream("/lua/audio_pickup_hangup.amr", ttsCallback)
+        else
+            util_audio.audioStream("/lua/audio_pickup_record.amr", ttsCallback)
+        end
     end
 end
 
@@ -209,8 +223,6 @@ local function callIncomingCallback(num)
             end,
             1000 * 2
         )
-        -- 发通知
-        util_notify.add({"来电号码: " .. num, "来电动作: 接听", "", "#CALL #CALL_IN"})
     end
 end
 
@@ -235,6 +247,7 @@ local function callConnectedCallback(num)
     audio.stop()
     -- 向对方播放留言提醒 TTS
     sys.timerStart(tts, 1000 * 1)
+
     -- 定时结束通话
     sys.timerStart(cc.hangUp, 1000 * 60 * 2, num)
 end
