@@ -266,6 +266,29 @@ local notify = {
 
         log.info("util_notify", "POST", config.NEXT_SMTP_PROXY_API)
         return util_http.fetch(nil, "POST", config.NEXT_SMTP_PROXY_API, header, urlencodeTab(body))
+    end,
+    -- 发送到 ServerChan
+    ["serverchan"] = function(msg)
+        if config.SERVERCHAN_API == nil or config.SERVERCHAN_API == "" then
+            log.error("util_notify", "未配置 `config.SERVERCHAN_API`")
+            return
+        end
+
+        if config.SERVERCHAN_TITLE == nil or config.SERVERCHAN_TITLE == "" then
+            log.error("util_notify", "未配置 `config.SERVERCHAN_TITLE`")
+            return
+        end
+
+        local header = {
+            ["Content-Type"] = "application/x-www-form-urlencoded"
+        }
+        local body = {
+            title = config.SERVERCHAN_TITLE,
+            desp = msg
+        }
+
+        log.info("util_notify", "POST", config.SERVERCHAN_API)
+        return util_http.fetch(nil, "POST", config.SERVERCHAN_API, header, urlencodeTab(body))
     end
 }
 
@@ -277,7 +300,16 @@ local function buildDeviceInfo()
     -- 本机号码
     local number = sim.getNumber()
     if number then
+        if string.sub(number, 1, 1) ~= "+" then
+            number = "+" .. number
+        end
         msg = msg .. "\n本机号码: " .. number
+    end
+    
+    -- IMEI
+    local imei = misc.getImei()
+    if imei ~= "" then
+        msg = msg .. "\nIMEI: " .. imei
     end
 
     -- 运营商
@@ -296,6 +328,18 @@ local function buildDeviceInfo()
     local band = net.getBand()
     if band ~= "" then
         msg = msg .. "\n频段: B" .. band
+    end
+
+    -- 板卡
+    local board_version = misc.getModelType()
+    if board_version ~= "" then
+        msg = msg .. "\n板卡: " .. board_version
+    end
+    
+    -- 系统版本
+    local os_version = misc.getVersion()
+    if os_version ~= "" then
+        msg = msg .. "\n系统版本: " .. os_version
     end
 
     -- 温度
