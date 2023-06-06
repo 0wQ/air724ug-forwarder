@@ -181,6 +181,9 @@ end
 -- 电话拨入回调
 -- 设备主叫时, 不会触发此回调
 local function callIncomingCallback(num)
+    -- 来电号码
+    CALL_NUMBER = num or "unknown"
+
     -- 来电动作, 挂断
     if nvm.get("CALL_IN_ACTION") == 2 then
         log.info("handler_call.callIncomingCallback", "来电动作", "挂断")
@@ -282,6 +285,10 @@ ril.regUrc(
     "RING",
     function()
         -- 来电铃声
-        util_audio.play(4, "FILE", "/lua/audio_ring.mp3")
+        local vol = nvm.get("AUDIO_VOLUME") or 0
+        if vol == 0 then
+            return
+        end
+        audio.play(4, "FILE", "/lua/audio_ring.mp3", vol)
     end
 )

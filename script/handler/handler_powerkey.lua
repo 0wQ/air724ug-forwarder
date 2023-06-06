@@ -157,6 +157,17 @@ powerKey.setup(
     1000 * 0.5,
     function()
         if cc.anyCallExist() then
+            local cc_state = cc.getState(CALL_NUMBER)
+            if cc_state == cc.INCOMING or cc_state == cc.WAITING or cc_state == cc.HOLD then
+                log.info("handler_powerkey", "手动接听")
+                cc.accept(CALL_NUMBER)
+                return
+            end
+            if cc_state == cc.CONNECTED or cc_state == cc.DIALING or cc_state == cc.ALERTING then
+                log.info("handler_powerkey", "手动挂断")
+                cc.hangUp(CALL_NUMBER)
+                return
+            end
             log.info("handler_powerkey", "正在通话中, 不响应操作")
             return
         end
