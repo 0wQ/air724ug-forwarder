@@ -52,8 +52,8 @@ FEISHU_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
 -- GOTIFY_TOKEN = ""
 
 -- ServerChan 配置
-SERVERCHAN_TITLE = "来自 Air724UG 的通知"
-SERVERCHAN_API = ""
+-- SERVERCHAN_TITLE = "来自 Air724UG 的通知"
+-- SERVERCHAN_API = ""
 
 -- 定时查询流量间隔, 单位毫秒, 设置为 0 关闭 (建议检查 util_mobile.lua 文件中运营商号码和查询流量代码是否正确, 以免发错短信导致扣费, 收到查询结果短信发送通知会消耗流量)
 QUERY_TRAFFIC_INTERVAL = 0
@@ -84,7 +84,7 @@ SMS_CONTROL_WHITELIST_NUMBERS = {}
 -- 扬声器 TTS 播放短信内容, 0：关闭(默认)，1：仅验证码，2：全部
 SMS_TTS = 0
 
--- 电话接通后 TTS 语音内容, 在播放完后开始录音, 如果注释掉或者为空则播放 audio_call.amr 文件
+-- 电话接通后 TTS 语音内容, 在播放完后开始录音, 如果注释掉或者为空则播放 audio_pickup_record.amr 或 audio_pickup_hangup.amr 文件
 -- TTS_TEXT = "您好，请在语音结束后留言，稍后将发送到机主，结束请挂机。"
 
 -- 扬声器播放通话声音
@@ -94,7 +94,7 @@ CALL_PLAY_TO_SPEAKER_ENABLE = false
 CALL_MIC_ENABLE = false
 
 -- 来电动作, 0：无操作，1：接听(默认)，2：挂断, 3：接听后挂断
-CALL_IN_ACTION = 3
+CALL_IN_ACTION = 1
 
 -------------------------------------------------- 其他配置 --------------------------------------------------
 
