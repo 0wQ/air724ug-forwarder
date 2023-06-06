@@ -49,21 +49,21 @@ local options = {
     {
         name = "短信播报",
         func = function()
-            local s = {"关闭", "仅验证码", "全部"}
-            local vol = nvm.get("SMS_TTS") or 0
-            vol = vol >= 2 and 0 or vol + 1
-            nvm.set("SMS_TTS", vol)
-            tts(s[vol + 1])
+            local options = {"关闭", "仅验证码", "全部"}
+            local currentOptionIndex = nvm.get("SMS_TTS") or 0
+            currentOptionIndex = currentOptionIndex >= #options - 1 and 0 or currentOptionIndex + 1
+            nvm.set("SMS_TTS", currentOptionIndex)
+            tts(options[currentOptionIndex + 1])
         end
     },
     {
         name = "来电动作",
         func = function()
-            local s = {"无操作", "接听", "挂断"}
-            local vol = nvm.get("CALL_IN_ACTION") or 0
-            vol = vol >= 2 and 0 or vol + 1
-            nvm.set("CALL_IN_ACTION", vol)
-            tts("来电 " .. s[vol + 1])
+            local options = {"无操作", "接听", "挂断", "接听后挂断"}
+            local currentOptionIndex = nvm.get("CALL_IN_ACTION") or 0
+            currentOptionIndex = currentOptionIndex >= #options - 1 and 0 or currentOptionIndex + 1
+            nvm.set("CALL_IN_ACTION", currentOptionIndex)
+            tts(options[currentOptionIndex + 1])
         end
     },
     {
