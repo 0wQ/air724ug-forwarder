@@ -3,7 +3,7 @@ module(...)
 -------------------------------------------------- 通知相关配置 --------------------------------------------------
 
 -- 通知类型, 支持配置多个
--- NOTIFY_TYPE = {"telegram", "pushdeer", "bark", "dingtalk", "feishu", "wecom", "pushover", "inotify", "next-smtp-proxy", "gotify"}
+-- NOTIFY_TYPE = {"telegram", "pushdeer", "bark", "dingtalk", "feishu", "wecom", "pushover", "inotify", "next-smtp-proxy", "gotify", "serverchan"}
 NOTIFY_TYPE = {"feishu"}
 
 -- telegram 通知配置, https://github.com/0wQ/telegram-notify
@@ -51,6 +51,10 @@ FEISHU_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
 -- GOTIFY_PRIORITY = 8
 -- GOTIFY_TOKEN = ""
 
+-- ServerChan 配置
+SERVERCHAN_TITLE = "来自 Air724UG 的通知"
+SERVERCHAN_API = ""
+
 -- 定时查询流量间隔, 单位毫秒, 设置为 0 关闭 (建议检查 util_mobile.lua 文件中运营商号码和查询流量代码是否正确, 以免发错短信导致扣费, 收到查询结果短信发送通知会消耗流量)
 QUERY_TRAFFIC_INTERVAL = 0
 
@@ -89,8 +93,8 @@ CALL_PLAY_TO_SPEAKER_ENABLE = false
 -- 开启通话麦克风
 CALL_MIC_ENABLE = false
 
--- 来电动作, 0：无操作，1：接听(默认)，2：挂断
-CALL_IN_ACTION = 1
+-- 来电动作, 0：无操作，1：接听(默认)，2：挂断, 3：接听后挂断
+CALL_IN_ACTION = 3
 
 -------------------------------------------------- 其他配置 --------------------------------------------------
 
