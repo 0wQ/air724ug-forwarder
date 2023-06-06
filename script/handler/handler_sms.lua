@@ -134,9 +134,7 @@ local function smsCallback(sender_number, data, datetime)
     end
 
     -- 短信提示音
-    if not CALL_IN then
-        util_audio.play(4, "FILE", "/lua/audio_new_sms.mp3")
-    end
+    util_audio.play(4, "FILE", "/lua/audio_new_sms.mp3")
 
     -- 判断 SMS_TTS 开关
     if type(nvm.get("SMS_TTS")) ~= "number" or nvm.get("SMS_TTS") == 0 then
