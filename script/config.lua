@@ -6,9 +6,8 @@ module(...)
 -- NOTIFY_TYPE = {"telegram", "pushdeer", "bark", "dingtalk", "feishu", "wecom", "pushover", "inotify", "next-smtp-proxy", "gotify", "serverchan"}
 NOTIFY_TYPE = {"feishu"}
 
--- telegram 通知配置, https://github.com/0wQ/telegram-notify
--- TELEGRAM_PROXY_API = ""
--- TELEGRAM_TOKEN = ""
+-- telegram 通知配置, https://github.com/0wQ/telegram-notify 或者自行反代
+-- TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
 -- TELEGRAM_CHAT_ID = ""
 
 -- pushdeer 通知配置, https://www.pushdeer.com/
