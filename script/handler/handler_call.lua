@@ -128,7 +128,7 @@ end
 
 -- 开始录音
 local function reacrdStart()
-    if (CALL_IN and cc.CONNECTED) then
+    if cc.anyCallExist() then
         log.info("handler_call.reacrdStart", "正在通话中, 开始录音", "result:", result)
         CALL_RECORD_START_TIME = os.time()
         record.start(record_max_time, recordCallback, "FILE", record_quality, 2, record_format)

@@ -1,5 +1,5 @@
 local function tts(text, vol)
-    if CALL_IN then
+    if cc.anyCallExist() then
         log.info("handler_powerkey.tts", "正在通话中, 不播放")
         return
     end
