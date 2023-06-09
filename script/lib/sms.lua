@@ -519,7 +519,7 @@ end
 
 --- 发送短信
 -- @string num，短信接收方号码，ASCII码字符串格式
--- @string data，短信内容，GB2312编码的字符串
+-- @string data，短信内容，utf8编码的字符串
 --               如果短信内容中只有ascii可见字符，则超过160个字符时，会被拆分为几条长级联短信进行发送
 --               如果短信内容中包含除ascii可见字符外的其他字符，例如包含汉字，一个汉字算作一个字符，一个ascii可见字符也算作一个字符，超过70个字符时，会被拆分为几条长级联短信进行发送
 -- @function[opt=nil] cbFnc，短信发送结果异步返回时的用户回调函数，回调函数的调用形式为：
@@ -534,7 +534,7 @@ function send(num, data, cbFnc, idx)
     if not num or num == "" or not data or data == "" then if cbFnc then cbFnc(false, num, data) end return end
     --短信发送缓冲表已满
     if #tsmsnd >= SMS_SEND_BUF_MAX_CNT then if cbFnc then cbFnc(false, num, data) end return end
-    local dat = string.toHex(common.gb2312ToUcs2be(data))
+    local dat = string.toHex(common.utf8ToUcs2be(data))
     --如果指定了插入位置
     if idx then
         table.insert(tsmsnd, idx, {num = num, data = dat, cb = cbFnc})
@@ -618,8 +618,8 @@ local function readcnf(result, num, data, pos, datetime, name, total, idx, isn)
             return
         end
         if data then
-            --短信内容转换为GB2312字符串格式
-            data = common.ucs2beToGb2312(data:fromHex())
+            --短信内容转换为utf8字符串格式
+            data = common.ucs2beToUtf8(data:fromHex())
             --用户应用程序处理短信
             if newsmscb then newsmscb(num, data, datetime) end
         end
@@ -639,7 +639,7 @@ local function longsmsmergecnf(res, num, data, datetime)
     --log.info("longsmsmergecnf",num,data,datetime)
     if data then
         --短信内容转换为GB2312字符串格式
-        data = common.ucs2beToGb2312(data:fromHex())
+        data = common.ucs2beToUtf8(data:fromHex())
         --用户应用程序处理短信
         if newsmscb then newsmscb(num, data, datetime) end
     end

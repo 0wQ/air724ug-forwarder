@@ -88,10 +88,8 @@ local function smsContentMatcher(sender_number, sms_content)
 
         log.info("handler_sms.smsContentMatcher", "发送短信给" .. receiver_number .. ": " .. sms_content_to_be_sent)
 
-        -- 发短信之前要先把内容转码成 GB2312
-        local sms_content_to_be_sent_gb2312 = common.utf8ToGb2312(sms_content_to_be_sent)
         -- 发送短信
-        sys.taskInit(sms.send, receiver_number, sms_content_to_be_sent_gb2312)
+        sys.taskInit(sms.send, receiver_number, sms_content_to_be_sent)
         -- 发送通知
         util_notify.add(
             {
@@ -108,11 +106,9 @@ end
 
 --- 短信回调函数，处理接收到的短信
 -- @param sender_number (string) 短信发送者号码
--- @param data (string) 短信内容
+-- @param sms_content (string) 短信内容
 -- @param datetime (string) 短信接收时间
-local function smsCallback(sender_number, data, datetime)
-    -- 转换短信内容
-    local sms_content = common.gb2312ToUtf8(data)
+local function smsCallback(sender_number, sms_content, datetime)
     log.info("handler_sms.smsCallback", sender_number, datetime, sms_content)
 
     -- 发送通知
