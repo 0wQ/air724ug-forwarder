@@ -33,6 +33,10 @@ FEISHU_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
 
 -- inotify 通知配置, https://github.com/xpnas/Inotify 或者使用合宙提供的 https://push.luatos.org
 -- INOTIFY_API = "https://push.luatos.org/xxx.send"
+-- inotify的消息渠道是否启用了邮箱渠道
+INOTIFY_ENABLE_EMAIL = true
+-- 邮箱推送渠道的KEY
+INOTIFY_EMAIL_KEY=""
 
 -- next-smtp-proxy 通知配置, https://github.com/0wQ/next-smtp-proxy
 -- NEXT_SMTP_PROXY_API = ""
