@@ -225,7 +225,24 @@ local notify = {
         --     log.error("util_notify", "`config.INOTIFY_API` 必须以 `.send` 结尾")
         --     return
         -- end
-
+        --判断是否启用邮箱渠道
+        if config.INOTIFY_ENABLE_EMAIL and (config.INOTIFY_EMAIL_KEY ~= nil or config.INOTIFY_API ~= "") then
+            log.info("Enable email push")
+            local  data = msg
+            log.info("data:",data)
+            data = data:gsub("%%","%%25")
+                    :gsub("+","%%2B")
+                    :gsub("/","%%2F")
+                    :gsub("?","%%3F")
+                    :gsub("#","%%23")
+                    :gsub("&","%%26")
+                    :gsub(" ","%%20")
+            local title=sim.getNumber().."收到的短信"
+            log.info("title:",title)        
+            local url = "https://push.luatos.org/"..config.INOTIFY_EMAIL_KEY..".send/"..string.urlEncode(title).."/"..string.urlEncode(data)
+            util_http.fetch(nil, "GET", url)
+        end
+        log.info("msg:",msg)
         local url = config.INOTIFY_API .. "/" .. string.urlEncode(msg)
 
         log.info("util_notify", "GET", url)
