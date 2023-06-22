@@ -226,7 +226,7 @@ local notify = {
         --     return
         -- end
         --判断是否启用邮箱渠道
-        if config.INOTIFY_ENABLE_EMAIL and (config.INOTIFY_EMAIL_KEY ~= nil or config.INOTIFY_API ~= "") then
+        if config.INOTIFY_ENABLE_EMAIL and (config.INOTIFY_EMAIL_KEY ~= nil or config.INOTIFY_EMAIL_KEY ~= "") then
             log.info("Enable email push")
             local  data = msg
             log.info("data:",data)
