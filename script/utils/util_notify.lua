@@ -314,11 +314,22 @@ local function buildDeviceInfo()
         msg = msg .. "\n本机号码: " .. number
     end
 
-    -- IMEI
-    local imei = misc.getImei()
-    if imei ~= "" then
-        msg = msg .. "\nIMEI: " .. imei
-    end
+    -- -- IMEI
+    -- local imei = misc.getImei()
+    -- if imei ~= "" then
+    --     msg = msg .. "\nIMEI: " .. imei
+    -- end
+
+    -- 开机时长
+    -- rtos.tick() 系统启动后的计数个数 单位为5ms 0-5d638865→-5d638865-0
+    local ms = rtos.tick() * 5
+    local seconds = math.floor(ms / 1000)
+    local minutes = math.floor(seconds / 60)
+    local hours = math.floor(minutes / 60)
+    seconds = seconds % 60
+    minutes = minutes % 60
+    local boot_time = string.format("%02d:%02d:%02d", hours, minutes, seconds)
+    if ms >= 0 then msg = msg .. "\n开机时长: " .. boot_time end
 
     -- 运营商
     local oper = util_mobile.getOper(true)
@@ -338,17 +349,17 @@ local function buildDeviceInfo()
         msg = msg .. "\n频段: B" .. band
     end
 
-    -- 板卡
-    local board_version = misc.getModelType()
-    if board_version ~= "" then
-        msg = msg .. "\n板卡: " .. board_version
-    end
+    -- -- 板卡
+    -- local board_version = misc.getModelType()
+    -- if board_version ~= "" then
+    --     msg = msg .. "\n板卡: " .. board_version
+    -- end
 
-    -- 系统版本
-    local os_version = misc.getVersion()
-    if os_version ~= "" then
-        msg = msg .. "\n系统版本: " .. os_version
-    end
+    -- -- 系统版本
+    -- local os_version = misc.getVersion()
+    -- if os_version ~= "" then
+    --     msg = msg .. "\n系统版本: " .. os_version
+    -- end
 
     -- 温度
     local temperature = util_temperature.get()
