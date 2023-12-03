@@ -40,7 +40,7 @@ function audioStream(path, callback)
                         while audiocore.streamremain() ~= 0 do
                             sys.wait(20)
                         end
-                        sys.wait(1000)
+                        sys.wait(20)
                         audiocore.stop() -- 添加 audiocore.stop() 接口, 否则再次播放会播放不出来
                         log.warn("util_audio.audioStream", "AudioStreamPlay Over")
                         return callback(true)

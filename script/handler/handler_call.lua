@@ -52,12 +52,12 @@ local CALL_RECORD_START_TIME = 0
 ------------------------------------------------- 录音上传相关 --------------------------------------------------
 
 local function recordUploadResultNotify(result, url, msg)
-    CALL_DISCONNECTED_TIME = CALL_DISCONNECTED_TIME == 0 and os.time() or CALL_DISCONNECTED_TIME
+    CALL_DISCONNECTED_TIME = CALL_DISCONNECTED_TIME == 0 and rtos.tick() * 5 or CALL_DISCONNECTED_TIME
 
     local lines = {
         "来电号码: " .. CALL_NUMBER,
-        "通话时长: " .. CALL_DISCONNECTED_TIME - CALL_CONNECTED_TIME .. " S",
-        "录音时长: " .. (result and (CALL_DISCONNECTED_TIME - CALL_RECORD_START_TIME) or 0) .. " S",
+        "通话时长: " .. (CALL_DISCONNECTED_TIME - CALL_CONNECTED_TIME) / 1000 .. " S",
+        "录音时长: " .. (result and ((CALL_DISCONNECTED_TIME - CALL_RECORD_START_TIME) / 1000) or 0) .. " S",
         "录音结果: " .. (result and "成功" or ("失败, " .. (msg or ""))),
         result and ("录音文件: " .. url) or "",
         "",
@@ -127,13 +127,13 @@ local function recordCallback(result, size)
 end
 
 -- 开始录音
-local function reacrdStart()
+local function recordStart()
     if cc.anyCallExist() then
-        log.info("handler_call.reacrdStart", "正在通话中, 开始录音", "result:", result)
-        CALL_RECORD_START_TIME = os.time()
+        log.info("handler_call.recordStart", "正在通话中, 开始录音", "result:", result)
+        CALL_RECORD_START_TIME = rtos.tick() * 5
         record.start(record_max_time, recordCallback, "FILE", record_quality, 2, record_format)
     else
-        log.info("handler_call.reacrdStart", "通话已结束, 不录音", "result:", result)
+        log.info("handler_call.recordStart", "通话已结束, 不录音", "result:", result)
         recordUploadResultNotify(false, nil, "呼叫方提前挂断电话, 无录音")
     end
 end
@@ -148,13 +148,10 @@ local function ttsCallback(result)
     if nvm.get("CALL_IN_ACTION") == 3 then
         -- 如果是接听后挂断，则不录音，直接返回
         log.info("handler_call.callIncomingCallback", "来电动作", "接听后挂断")
-        util_notify.add({"来电号码: " .. CALL_NUMBER, "来电动作: 接听后挂断", "", "#CALL #CALL_IN"})
         cc.hangUp(CALL_NUMBER)
     else
-        -- 延迟开始录音, 防止 TTS 播放时主动挂断电话, 会先触发 TTS 结束回调, 再触发挂断电话回调, 导致 reacrdStart() 判断到正在通话中
-        sys.timerStart(reacrdStart, 500)
-        -- 发通知
-        util_notify.add({"来电号码: " .. CALL_NUMBER, "来电动作: 接听并录音", "", "#CALL #CALL_IN"})
+        -- 延迟开始录音, 防止 TTS 播放时主动挂断电话, 会先触发 TTS 结束回调, 再触发挂断电话回调, 导致 recordStart() 判断到正在通话中
+        sys.timerStart(recordStart, 300)
     end
 end
 
@@ -193,7 +190,7 @@ local function callIncomingCallback(num)
         return
     end
 
-    -- CALL_IN 从电话接入到挂断都是 true
+    -- CALL_IN 从电话接入到挂断都是 true, 用于判断是否为来电中, 本函数会被多次触发
     if CALL_IN then
         return
     end
@@ -201,8 +198,6 @@ local function callIncomingCallback(num)
     -- 来电动作, 无操作 or 接听
     if nvm.get("CALL_IN_ACTION") == 0 then
         log.info("handler_call.callIncomingCallback", "来电动作", "无操作")
-        -- 发通知
-        util_notify.add({"来电号码: " .. num, "来电动作: 无操作", "", "#CALL #CALL_IN"})
     else
         log.info("handler_call.callIncomingCallback", "来电动作", "接听")
         -- 标记接听来电中
@@ -227,6 +222,11 @@ local function callIncomingCallback(num)
             1000 * 2
         )
     end
+
+    -- 发送除了 来电动作为挂断 之外的通知
+    -- 0：无操作，1：接听(默认)，2：挂断, 3：接听后挂断
+    local action_desc = {[0] = "无操作", [1] = "接听", [2] = "挂断", [3] = "接听后挂断"}
+    util_notify.add({"来电号码: " .. num, "来电动作: " .. action_desc[nvm.get("CALL_IN_ACTION")], "", "#CALL #CALL_IN"})
 end
 
 -- 电话接通回调
@@ -234,7 +234,7 @@ local function callConnectedCallback(num)
     -- 再次标记接听来电中, 防止设备主叫时, 不触发 `CALL_INCOMING` 回调, 导致 CALL_IN 为 false
     CALL_IN = true
     -- 接通时间
-    CALL_CONNECTED_TIME = os.time()
+    CALL_CONNECTED_TIME = rtos.tick() * 5
     -- 来电号码
     CALL_NUMBER = num or "unknown"
 
@@ -242,6 +242,17 @@ local function callConnectedCallback(num)
     CALL_RECORD_START_TIME = 0
 
     log.info("handler_call.callConnectedCallback", num)
+
+    local output, input = 2, 0
+    -- 切换音频输出为 1:耳机, 用于实现通话时静音
+    if not nvm.get("CALL_PLAY_TO_SPEAKER_ENABLE") or nvm.get("AUDIO_VOLUME") == 0 then
+        output = 1
+    end
+    -- 切换音频输入为 3:耳机mic, 用于实现通话时静音
+    if not nvm.get("CALL_MIC_ENABLE") or nvm.get("AUDIO_VOLUME") == 0 then
+        input = 3
+    end
+    audio.setChannel(output, input)
 
     -- 设置 mic 增益等级, 通话建立成功之后设置才有效
     audio.setMicGain("call", 7)
@@ -261,7 +272,7 @@ local function callDisconnectedCallback(discReason)
     -- 标记来电结束
     CALL_IN = false
     -- 通话结束时间
-    CALL_DISCONNECTED_TIME = os.time()
+    CALL_DISCONNECTED_TIME = rtos.tick() * 5
     -- 清除所有挂断通话定时器, 防止多次触发挂断回调
     sys.timerStopAll(cc.hangUp)
 
@@ -270,7 +281,13 @@ local function callDisconnectedCallback(discReason)
     -- 录音结束
     record.stop()
     -- TTS 结束
-    audio.stop()
+    -- tts(util_audio.audioStream播放的音频文件) 播放中通话被挂断，然后在 callDisconnectedCallback 中调用 audio.stop() 有时不会触发 ttsCallback 回调
+    -- 调用 audiocore.stop() 可以解决这个问题
+    audio.stop(function(result)
+        log.info("handler_call.callDisconnectedCallback", "audio.stop() callback result:", result)
+    end)
+    audiocore.stop()
+
 
     -- 切换音频输出为 2:喇叭, 音频输入为 0:主mic
     audio.setChannel(2, 0)
