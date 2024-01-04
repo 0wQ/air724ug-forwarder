@@ -164,3 +164,26 @@ end
 
 -- 设置短信回调
 sms.setNewSmsCb(smsCallback)
+
+--  设置 urc 回调
+-- (URC) 事件控制指示：+CIEV
+local function urc(data, prefix)
+    data = type(data) == "string" and data or ""
+    -- 判断彩信
+    if string.find(data, "MMS") then
+        -- 发送通知
+        util_notify.add({ "收到一条彩信, 但设备不支持接收", "", "发件号码: Unknown", "#SMS #ERROR" })
+        ril.request("AT+CNMI=2,1,0,0,0")
+        log.info("handler_sms.urc", "收到彩信", prefix, data)
+        return
+    end
+    -- 判断短信存储满
+    if string.find(data, "SMSFULL") then
+        ril.request("AT+CMGD=1,4")
+        ril.request("AT+CNMI=2,1,0,0,0")
+        log.info("handler_sms.urc", "短信存储满", prefix, data)
+        return
+    end
+end
+
+ril.regUrc("+CIEV", urc)
