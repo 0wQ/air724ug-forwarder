@@ -3,8 +3,13 @@ module(...)
 -------------------------------------------------- 通知相关配置 --------------------------------------------------
 
 -- 通知类型, 支持配置多个
--- NOTIFY_TYPE = {"telegram", "pushdeer", "bark", "dingtalk", "feishu", "wecom", "pushover", "inotify", "next-smtp-proxy", "gotify", "serverchan"}
+-- NOTIFY_TYPE = {"custom_post", "telegram", "pushdeer", "bark", "dingtalk", "feishu", "wecom", "pushover", "inotify", "next-smtp-proxy", "gotify", "serverchan"}
 NOTIFY_TYPE = {"feishu"}
+
+-- custom_post 通知配置, 自定义 POST 请求, CUSTOM_POST_BODY_TABLE 中的 {msg} 会被替换为通知内容
+CUSTOM_POST_URL = "https://sctapi.ftqq.com/<SENDKEY>.send"
+CUSTOM_POST_CONTENT_TYPE = "application/json"
+CUSTOM_POST_BODY_TABLE = {["title"] = "这里是标题", ["desp"] = "{msg}"}
 
 -- telegram 通知配置, https://github.com/0wQ/telegram-notify 或者自行反代
 -- TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
