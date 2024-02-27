@@ -1,6 +1,6 @@
 module(..., package.seeall)
 
--- 运营商数据
+-- 运营商代码 & 流量查询短信
 local oper_data = {
     -- 中国移动
     ["46000"] = {"CM", "中国移动", {"10086", "CXLL"}},
@@ -21,7 +21,15 @@ local oper_data = {
 --- 获取 MCC 和 MNC
 -- @return (string) MCCMNC 代码
 function getMccMnc()
-    return net.getMcc() .. net.getMnc()
+    local mcc = net.getMcc()
+    local mnc = net.getMnc()
+
+    -- 有可能是 1 位数，需要补 0
+    if #mnc == 1 then
+        mnc = "0" .. mnc
+    end
+
+    return mcc .. mnc
 end
 
 --- 获取运营商
