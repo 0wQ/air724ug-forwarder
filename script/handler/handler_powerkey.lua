@@ -123,7 +123,7 @@ local options = {
         func = function()
             local m = collectgarbage("count")
             m = m > 1024 and string.format("%.2f", m / 1024) .. " M" or string.format("%.2f", m) .. " K"
-            tts("剩余内存 " .. m)
+            tts("已用内存 " .. m)
         end
     },
     {
