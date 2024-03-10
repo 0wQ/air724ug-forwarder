@@ -2,7 +2,7 @@
 
 ## 使用方法
 
-> 底层 CORE 版本：[LuatOS-Air_V4018_RDA8910_TTS_NOLVGL_FLOAT.pac](https://doc.openluat.com/article/1334)
+> 底层 CORE 版本：[LuatOS-Air_V4028_RDA8910_TTS_NOLVGL_FLOAT.pac](https://doc.openluat.com/article/1334)
 
 ### 1. 按注释修改 `script/config.lua` 配置文件
 
