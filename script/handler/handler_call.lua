@@ -1,12 +1,15 @@
 ------------------------------------------------- Config --------------------------------------------------
 
+-- 是否开启录音上传
+local record_enable = nvm.get("UPLOAD_URL") and nvm.get("UPLOAD_URL") ~= ""
+
 -- 去除链接最后的斜杠
 local function trimSlash(url)
     return string.gsub(url, "/$", "")
 end
 
 -- 录音上传接口
-local record_upload_url = trimSlash(config.UPLOAD_URL) .. "/record"
+local record_upload_url = trimSlash(nvm.get("UPLOAD_URL") or "") .. "/record"
 
 -- 录音格式, 1:pcm 2:wav 3:amrnb 4:speex
 local record_format = 2
@@ -48,6 +51,14 @@ CALL_NUMBER = ""
 local CALL_CONNECTED_TIME = 0
 local CALL_DISCONNECTED_TIME = 0
 local CALL_RECORD_START_TIME = 0
+
+local function getCallInAction()
+    -- 动作为接听, 但录音上传未开启
+    if nvm.get("CALL_IN_ACTION") == 1 and not record_enable then
+        return 3
+    end
+    return nvm.get("CALL_IN_ACTION")
+end
 
 ------------------------------------------------- 录音上传相关 --------------------------------------------------
 
@@ -145,7 +156,7 @@ local function ttsCallback(result)
     log.info("handler_call.ttsCallback", "result:", result)
 
     -- 判断来电动作是否为接听后挂断
-    if nvm.get("CALL_IN_ACTION") == 3 then
+    if getCallInAction() == 3 then
         -- 如果是接听后挂断，则不录音，直接返回
         log.info("handler_call.callIncomingCallback", "来电动作", "接听后挂断")
         cc.hangUp(CALL_NUMBER)
@@ -165,7 +176,7 @@ local function tts()
         audio.play(7, "TTS", config.TTS_TEXT, 7, ttsCallback)
     else
         -- 播放音频文件
-        if nvm.get("CALL_IN_ACTION") == 3 then
+        if getCallInAction() == 3 then
             util_audio.audioStream("/lua/audio_pickup_hangup.amr", ttsCallback)
         else
             util_audio.audioStream("/lua/audio_pickup_record.amr", ttsCallback)
@@ -182,7 +193,7 @@ local function callIncomingCallback(num)
     CALL_NUMBER = num or "unknown"
 
     -- 来电动作, 挂断
-    if nvm.get("CALL_IN_ACTION") == 2 then
+    if getCallInAction() == 2 then
         log.info("handler_call.callIncomingCallback", "来电动作", "挂断")
         cc.hangUp(num)
         -- 发通知
@@ -196,7 +207,7 @@ local function callIncomingCallback(num)
     end
 
     -- 来电动作, 无操作 or 接听
-    if nvm.get("CALL_IN_ACTION") == 0 then
+    if getCallInAction() == 0 then
         log.info("handler_call.callIncomingCallback", "来电动作", "无操作")
     else
         log.info("handler_call.callIncomingCallback", "来电动作", "接听")
@@ -226,7 +237,7 @@ local function callIncomingCallback(num)
     -- 发送除了 来电动作为挂断 之外的通知
     -- 0：无操作，1：接听(默认)，2：挂断, 3：接听后挂断
     local action_desc = {[0] = "无操作", [1] = "接听", [2] = "挂断", [3] = "接听后挂断"}
-    util_notify.add({"来电号码: " .. num, "来电动作: " .. action_desc[nvm.get("CALL_IN_ACTION")], "", "#CALL #CALL_IN"})
+    util_notify.add({"来电号码: " .. num, "来电动作: " .. action_desc[getCallInAction()], "", "#CALL #CALL_IN"})
 end
 
 -- 电话接通回调
