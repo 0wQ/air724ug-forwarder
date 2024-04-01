@@ -54,29 +54,27 @@ netLed.updateBlinkTime("GPRS", 200, 2000)
 -- 开机查询本机号码
 sys.timerStart(ril.request, 3000, "AT+CNUM")
 
-sys.taskInit(
-    function()
-        -- 等待网络就绪
-        sys.waitUntil("IP_READY_IND", 1000 * 60 * 2)
+sys.taskInit(function()
+    -- 等待网络就绪
+    sys.waitUntil("IP_READY_IND", 1000 * 60 * 2)
 
-        -- 等待获取 Band 值
-        sys.wait(1000 * 5)
+    -- 等待获取 Band 值
+    sys.wait(1000 * 5)
 
-        -- 开机通知
-        if nvm.get("BOOT_NOTIFY") then
-            util_notify.add("#BOOT")
-        end
-
-        -- 定时查询流量
-        if config.QUERY_TRAFFIC_INTERVAL and config.QUERY_TRAFFIC_INTERVAL >= 1000 * 60 then
-            sys.timerLoopStart(util_mobile.queryTraffic, config.QUERY_TRAFFIC_INTERVAL)
-        end
-
-        -- 开机同步时间
-        util_ntp.sync()
-        sys.timerLoopStart(util_ntp.sync, 1000 * 30)
+    -- 开机通知
+    if nvm.get("BOOT_NOTIFY") then
+        util_notify.add("#BOOT")
     end
-)
+
+    -- 定时查询流量
+    if config.QUERY_TRAFFIC_INTERVAL and config.QUERY_TRAFFIC_INTERVAL >= 1000 * 60 then
+        sys.timerLoopStart(util_mobile.queryTraffic, config.QUERY_TRAFFIC_INTERVAL)
+    end
+
+    -- 开机同步时间
+    util_ntp.sync()
+    sys.timerLoopStart(util_ntp.sync, 1000 * 30)
+end)
 
 -- 系统初始化
 sys.init(0, 0)

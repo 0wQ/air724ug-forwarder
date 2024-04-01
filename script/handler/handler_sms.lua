@@ -63,14 +63,7 @@ local function smsContentMatcher(sender_number, sms_content)
         -- 拨打电话
         sys.taskInit(cc.dial, called_number)
         -- 发送通知
-        util_notify.add(
-            {
-                sender_number .. "的短信触发了<拨打电话>",
-                "",
-                "被叫人号码: " .. called_number,
-                "#CONTROL"
-            }
-        )
+        util_notify.add({ sender_number .. "的短信触发了<拨打电话>", "", "被叫人号码: " .. called_number, "#CONTROL" })
         return
     end
 
@@ -91,15 +84,7 @@ local function smsContentMatcher(sender_number, sms_content)
         -- 发送短信
         sys.taskInit(sms.send, receiver_number, sms_content_to_be_sent)
         -- 发送通知
-        util_notify.add(
-            {
-                sender_number .. "的短信触发了<发送短信>",
-                "",
-                "收件人号码: " .. receiver_number,
-                "短信内容: " .. sms_content_to_be_sent,
-                "#CONTROL"
-            }
-        )
+        util_notify.add({ sender_number .. "的短信触发了<发送短信>", "", "收件人号码: " .. receiver_number, "短信内容: " .. sms_content_to_be_sent, "#CONTROL" })
         return
     end
 end
@@ -112,15 +97,7 @@ local function smsCallback(sender_number, sms_content, datetime)
     log.info("handler_sms.smsCallback", sender_number, datetime, sms_content)
 
     -- 发送通知
-    util_notify.add(
-        {
-            sms_content,
-            "",
-            "发件号码: " .. sender_number,
-            "发件时间: " .. datetime,
-            "#SMS"
-        }
-    )
+    util_notify.add({ sms_content, "", "发件号码: " .. sender_number, "发件时间: " .. datetime, "#SMS" })
     -- 短信内容匹配
     sys.taskInit(smsContentMatcher, sender_number, sms_content)
 

@@ -3,13 +3,13 @@ module(...)
 -------------------------------------------------- 通知相关配置 --------------------------------------------------
 
 -- 通知类型, 支持配置多个
--- NOTIFY_TYPE = {"custom_post", "telegram", "pushdeer", "bark", "dingtalk", "feishu", "wecom", "pushover", "inotify", "next-smtp-proxy", "gotify", "serverchan"}
-NOTIFY_TYPE = {"feishu"}
+-- NOTIFY_TYPE = { "custom_post", "telegram", "pushdeer", "bark", "dingtalk", "feishu", "wecom", "pushover", "inotify", "next-smtp-proxy", "gotify", "serverchan" }
+NOTIFY_TYPE = { "feishu" }
 
 -- custom_post 通知配置, 自定义 POST 请求, CUSTOM_POST_BODY_TABLE 中的 {msg} 会被替换为通知内容
-CUSTOM_POST_URL = "https://sctapi.ftqq.com/<SENDKEY>.send"
-CUSTOM_POST_CONTENT_TYPE = "application/json"
-CUSTOM_POST_BODY_TABLE = {["title"] = "这里是标题", ["desp"] = "{msg}"}
+-- CUSTOM_POST_URL = "https://sctapi.ftqq.com/<SENDKEY>.send"
+-- CUSTOM_POST_CONTENT_TYPE = "application/json"
+-- CUSTOM_POST_BODY_TABLE = { ["title"] = "这里是标题", ["desp"] = "{msg}" }
 
 -- telegram 通知配置, https://github.com/0wQ/telegram-notify 或者自行反代
 -- TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
@@ -45,17 +45,17 @@ FEISHU_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
 -- NEXT_SMTP_PROXY_PASSWORD = ""
 -- NEXT_SMTP_PROXY_HOST = "smtp-mail.outlook.com"
 -- NEXT_SMTP_PROXY_PORT = 587
--- NEXT_SMTP_PROXY_FORM_NAME = "Air780E"
+-- NEXT_SMTP_PROXY_FORM_NAME = "Air724UG"
 -- NEXT_SMTP_PROXY_TO_EMAIL = ""
--- NEXT_SMTP_PROXY_SUBJECT = "来自 Air780E 的通知"
+-- NEXT_SMTP_PROXY_SUBJECT = "来自 Air724UG 的通知"
 
 -- gotify 通知配置, https://gotify.net/
 -- GOTIFY_API = ""
--- GOTIFY_TITLE = "Air780E"
+-- GOTIFY_TITLE = "Air724UG"
 -- GOTIFY_PRIORITY = 8
 -- GOTIFY_TOKEN = ""
 
--- ServerChan 配置
+-- serverchan 配置
 -- SERVERCHAN_TITLE = "来自 Air724UG 的通知"
 -- SERVERCHAN_API = ""
 

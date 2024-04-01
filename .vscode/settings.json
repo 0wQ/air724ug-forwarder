@@ -1,0 +1,6 @@
+{
+    "[lua]": {
+        "editor.defaultFormatter": "Koihik.vscode-lua-format"
+    },
+    "vscode-lua-format.configPath": "LuaFormatter.config",
+}

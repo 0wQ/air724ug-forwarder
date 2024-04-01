@@ -31,7 +31,7 @@ local notify = {
             return
         end
 
-        local header = {["content-type"] = config.CUSTOM_POST_CONTENT_TYPE}
+        local header = { ["content-type"] = config.CUSTOM_POST_CONTENT_TYPE }
 
         local body = json.decode(json.encode(config.CUSTOM_POST_BODY_TABLE))
         -- 遍历并替换其中的变量
@@ -67,14 +67,8 @@ local notify = {
             return
         end
 
-        local header = {
-            ["content-type"] = "application/json"
-        }
-        local body = {
-            ["chat_id"] = config.TELEGRAM_CHAT_ID,
-            ["disable_web_page_preview"] = true,
-            ["text"] = msg
-        }
+        local header = { ["content-type"] = "application/json" }
+        local body = { ["chat_id"] = config.TELEGRAM_CHAT_ID, ["disable_web_page_preview"] = true, ["text"] = msg }
         local json_data = json.encode(body)
 
         log.info("util_notify", "POST", config.TELEGRAM_API)
@@ -92,14 +86,8 @@ local notify = {
         end
 
         local url = config.GOTIFY_API .. "/message?token=" .. config.GOTIFY_TOKEN
-        local header = {
-            ["Content-Type"] = "application/json; charset=utf-8"
-        }
-        local body = {
-            title = config.GOTIFY_TITLE,
-            message = msg,
-            priority = config.GOTIFY_PRIORITY
-        }
+        local header = { ["Content-Type"] = "application/json; charset=utf-8" }
+        local body = { title = config.GOTIFY_TITLE, message = msg, priority = config.GOTIFY_PRIORITY }
         local json_data = json.encode(body)
 
         log.info("util_notify", "POST", config.GOTIFY_API)
@@ -116,14 +104,8 @@ local notify = {
             return
         end
 
-        local header = {
-            ["Content-Type"] = "application/x-www-form-urlencoded"
-        }
-        local body = {
-            pushkey = config.PUSHDEER_KEY or "",
-            type = "text",
-            text = msg
-        }
+        local header = { ["Content-Type"] = "application/x-www-form-urlencoded" }
+        local body = { pushkey = config.PUSHDEER_KEY or "", type = "text", text = msg }
 
         log.info("util_notify", "POST", config.PUSHDEER_API)
         return util_http.fetch(nil, "POST", config.PUSHDEER_API, header, urlencodeTab(body))
@@ -139,12 +121,8 @@ local notify = {
             return
         end
 
-        local header = {
-            ["Content-Type"] = "application/x-www-form-urlencoded"
-        }
-        local body = {
-            body = msg
-        }
+        local header = { ["Content-Type"] = "application/x-www-form-urlencoded" }
+        local body = { body = msg }
         local url = config.BARK_API .. "/" .. config.BARK_KEY
 
         log.info("util_notify", "POST", url)
@@ -157,15 +135,8 @@ local notify = {
             return
         end
 
-        local header = {
-            ["Content-Type"] = "application/json; charset=utf-8"
-        }
-        local body = {
-            msgtype = "text",
-            text = {
-                content = msg
-            }
-        }
+        local header = { ["Content-Type"] = "application/json; charset=utf-8" }
+        local body = { msgtype = "text", text = { content = msg } }
         local json_data = json.encode(body)
 
         log.info("util_notify", "POST", config.DINGTALK_WEBHOOK)
@@ -178,15 +149,8 @@ local notify = {
             return
         end
 
-        local header = {
-            ["Content-Type"] = "application/json; charset=utf-8"
-        }
-        local body = {
-            msg_type = "text",
-            content = {
-                text = msg
-            }
-        }
+        local header = { ["Content-Type"] = "application/json; charset=utf-8" }
+        local body = { msg_type = "text", content = { text = msg } }
         local json_data = json.encode(body)
 
         log.info("util_notify", "POST", config.FEISHU_WEBHOOK)
@@ -199,15 +163,8 @@ local notify = {
             return
         end
 
-        local header = {
-            ["Content-Type"] = "application/json; charset=utf-8"
-        }
-        local body = {
-            msgtype = "text",
-            text = {
-                content = msg
-            }
-        }
+        local header = { ["Content-Type"] = "application/json; charset=utf-8" }
+        local body = { msgtype = "text", text = { content = msg } }
         local json_data = json.encode(body)
 
         log.info("util_notify", "POST", config.WECOM_WEBHOOK)
@@ -224,14 +181,8 @@ local notify = {
             return
         end
 
-        local header = {
-            ["Content-Type"] = "application/json; charset=utf-8"
-        }
-        local body = {
-            token = config.PUSHOVER_API_TOKEN,
-            user = config.PUSHOVER_USER_KEY,
-            message = msg
-        }
+        local header = { ["Content-Type"] = "application/json; charset=utf-8" }
+        local body = { token = config.PUSHOVER_API_TOKEN, user = config.PUSHOVER_USER_KEY, message = msg }
 
         local json_data = json.encode(body)
 
@@ -284,9 +235,7 @@ local notify = {
             return
         end
 
-        local header = {
-            ["Content-Type"] = "application/x-www-form-urlencoded"
-        }
+        local header = { ["Content-Type"] = "application/x-www-form-urlencoded" }
         local body = {
             user = config.NEXT_SMTP_PROXY_USER,
             password = config.NEXT_SMTP_PROXY_PASSWORD,
@@ -295,7 +244,7 @@ local notify = {
             form_name = config.NEXT_SMTP_PROXY_FORM_NAME,
             to_email = config.NEXT_SMTP_PROXY_TO_EMAIL,
             subject = config.NEXT_SMTP_PROXY_SUBJECT,
-            text = msg
+            text = msg,
         }
 
         log.info("util_notify", "POST", config.NEXT_SMTP_PROXY_API)
@@ -313,17 +262,12 @@ local notify = {
             return
         end
 
-        local header = {
-            ["Content-Type"] = "application/x-www-form-urlencoded"
-        }
-        local body = {
-            title = config.SERVERCHAN_TITLE,
-            desp = msg
-        }
+        local header = { ["Content-Type"] = "application/x-www-form-urlencoded" }
+        local body = { title = config.SERVERCHAN_TITLE, desp = msg }
 
         log.info("util_notify", "POST", config.SERVERCHAN_API)
         return util_http.fetch(nil, "POST", config.SERVERCHAN_API, header, urlencodeTab(body))
-    end
+    end,
 }
 
 --- 构建设备信息字符串, 用于追加到通知消息中
@@ -355,7 +299,9 @@ local function buildDeviceInfo()
     seconds = seconds % 60
     minutes = minutes % 60
     local boot_time = string.format("%02d:%02d:%02d", hours, minutes, seconds)
-    if ms >= 0 then msg = msg .. "\n开机时长: " .. boot_time end
+    if ms >= 0 then
+        msg = msg .. "\n开机时长: " .. boot_time
+    end
 
     -- 运营商
     local oper = util_mobile.getOper(true)
@@ -452,11 +398,11 @@ function add(msg, channels)
     channels = channels or config.NOTIFY_TYPE
 
     if type(channels) ~= "table" then
-        channels = {channels}
+        channels = { channels }
     end
 
     for _, channel in ipairs(channels) do
-        table.insert(msg_queue, {channel = channel, msg = msg, retry = 0})
+        table.insert(msg_queue, { channel = channel, msg = msg, retry = 0 })
     end
     sys.publish("NEW_MSG")
     log.info("util_notify.add", "添加到消息队列, 当前队列长度:", #msg_queue)

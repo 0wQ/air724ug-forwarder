@@ -17,7 +17,7 @@ function fetch(timeout, method, url, headers, body)
     local id = "http_c" .. http_count .. "_r" .. math.random(1000, 9999)
 
     local function callback(res_result, res_prompt, res_headers, res_body)
-        sys.publish(id, {res_result, res_prompt, res_headers, res_body})
+        sys.publish(id, { res_result, res_prompt, res_headers, res_body })
     end
 
     log.info("util_http.fetch", "开始请求", "id:", id)

@@ -1,5 +1,4 @@
 ------------------------------------------------- Config --------------------------------------------------
-
 -- 是否开启录音上传
 local record_enable = nvm.get("UPLOAD_URL") and nvm.get("UPLOAD_URL") ~= ""
 
@@ -27,23 +26,13 @@ audio.setMicGain("record", 7)
 
 ------------------------------------------------- 初始化及状态记录 --------------------------------------------------
 
-local record_extentions = {
-    [1] = "pcm",
-    [2] = "wav",
-    [3] = "amr",
-    [4] = "speex"
-}
-local record_mime_types = {
-    [1] = "audio/x-pcm",
-    [2] = "audio/wav",
-    [3] = "audio/amr",
-    [4] = "audio/speex"
-}
+local record_extentions = { [1] = "pcm", [2] = "wav", [3] = "amr", [4] = "speex" }
+local record_mime_types = { [1] = "audio/x-pcm", [2] = "audio/wav", [3] = "audio/amr", [4] = "audio/speex" }
 local record_extention = record_extentions[record_format]
 local record_mime_type = record_mime_types[record_format]
 
-local record_upload_header = {["Content-Type"] = record_mime_type, ["Connection"] = "keep-alive"}
-local record_upload_body = {[1] = {["file"] = record.getFilePath()}}
+local record_upload_header = { ["Content-Type"] = record_mime_type, ["Connection"] = "keep-alive" }
+local record_upload_body = { [1] = { ["file"] = record.getFilePath() } }
 
 CALL_IN = false
 CALL_NUMBER = ""
@@ -72,7 +61,7 @@ local function recordUploadResultNotify(result, url, msg)
         "录音结果: " .. (result and "成功" or ("失败, " .. (msg or ""))),
         result and ("录音文件: " .. url) or "",
         "",
-        "#CALL #CALL_RECORD"
+        "#CALL #CALL_RECORD",
     }
 
     util_notify.add(lines)
@@ -94,18 +83,14 @@ local function upload()
     local local_file = record.getFilePath()
     local time = os.time()
     local date = os.date("*t", time)
-    local date_str =
-        table.concat(
-        {
-            date.year .. "/",
-            string.format("%02d", date.month) .. "/",
-            string.format("%02d", date.day) .. "/",
-            string.format("%02d", date.hour) .. "-",
-            string.format("%02d", date.min) .. "-",
-            string.format("%02d", date.sec)
-        },
-        ""
-    )
+    local date_str = table.concat({
+        date.year .. "/",
+        string.format("%02d", date.month) .. "/",
+        string.format("%02d", date.day) .. "/",
+        string.format("%02d", date.hour) .. "-",
+        string.format("%02d", date.min) .. "-",
+        string.format("%02d", date.sec),
+    }, "")
     -- URL 结构: /record/18888888888/2022/12/12/12-00-00/10086_1668784328.wav
     local url = record_upload_url .. "/"
     url = url .. (sim.getNumber() or "unknown") .. "/"
@@ -197,7 +182,7 @@ local function callIncomingCallback(num)
         log.info("handler_call.callIncomingCallback", "来电动作", "挂断")
         cc.hangUp(num)
         -- 发通知
-        util_notify.add({"来电号码: " .. num, "来电动作: 挂断", "", "#CALL #CALL_IN"})
+        util_notify.add({ "来电号码: " .. num, "来电动作: 挂断", "", "#CALL #CALL_IN" })
         return
     end
 
@@ -214,30 +199,27 @@ local function callIncomingCallback(num)
         -- 标记接听来电中
         CALL_IN = true
         -- 根据用户配置切换音频, 接听电话
-        sys.timerStart(
-            function()
-                local output, input = 2, 0
-                -- 切换音频输出为 1:耳机, 用于实现通话时静音
-                if not nvm.get("CALL_PLAY_TO_SPEAKER_ENABLE") or nvm.get("AUDIO_VOLUME") == 0 then
-                    output = 1
-                end
-                -- 切换音频输入为 3:耳机mic, 用于实现通话时静音
-                if not nvm.get("CALL_MIC_ENABLE") or nvm.get("AUDIO_VOLUME") == 0 then
-                    input = 3
-                end
-                audio.setChannel(output, input)
+        sys.timerStart(function()
+            local output, input = 2, 0
+            -- 切换音频输出为 1:耳机, 用于实现通话时静音
+            if not nvm.get("CALL_PLAY_TO_SPEAKER_ENABLE") or nvm.get("AUDIO_VOLUME") == 0 then
+                output = 1
+            end
+            -- 切换音频输入为 3:耳机mic, 用于实现通话时静音
+            if not nvm.get("CALL_MIC_ENABLE") or nvm.get("AUDIO_VOLUME") == 0 then
+                input = 3
+            end
+            audio.setChannel(output, input)
 
-                -- 接听电话
-                cc.accept(num)
-            end,
-            1000 * 2
-        )
+            -- 接听电话
+            cc.accept(num)
+        end, 1000 * 2)
     end
 
     -- 发送除了 来电动作为挂断 之外的通知
     -- 0：无操作，1：接听(默认)，2：挂断, 3：接听后挂断
-    local action_desc = {[0] = "无操作", [1] = "接听", [2] = "挂断", [3] = "接听后挂断"}
-    util_notify.add({"来电号码: " .. num, "来电动作: " .. action_desc[getCallInAction()], "", "#CALL #CALL_IN"})
+    local action_desc = { [0] = "无操作", [1] = "接听", [2] = "挂断", [3] = "接听后挂断" }
+    util_notify.add({ "来电号码: " .. num, "来电动作: " .. action_desc[getCallInAction()], "", "#CALL #CALL_IN" })
 end
 
 -- 电话接通回调
@@ -299,7 +281,6 @@ local function callDisconnectedCallback(discReason)
     end)
     audiocore.stop()
 
-
     -- 切换音频输出为 2:喇叭, 音频输入为 0:主mic
     audio.setChannel(2, 0)
 end
@@ -309,14 +290,11 @@ sys.subscribe("CALL_INCOMING", callIncomingCallback)
 sys.subscribe("CALL_CONNECTED", callConnectedCallback)
 sys.subscribe("CALL_DISCONNECTED", callDisconnectedCallback)
 
-ril.regUrc(
-    "RING",
-    function()
-        -- 来电铃声
-        local vol = nvm.get("AUDIO_VOLUME") or 0
-        if vol == 0 then
-            return
-        end
-        audio.play(4, "FILE", "/lua/audio_ring.mp3", vol)
+ril.regUrc("RING", function()
+    -- 来电铃声
+    local vol = nvm.get("AUDIO_VOLUME") or 0
+    if vol == 0 then
+        return
     end
-)
+    audio.play(4, "FILE", "/lua/audio_ring.mp3", vol)
+end)

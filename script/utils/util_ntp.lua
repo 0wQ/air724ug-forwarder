@@ -9,15 +9,12 @@ function sync()
         return
     end
     log.info("util_ntp.sync", "开始同步")
-    ntp.timeSync(
-        1,
-        function(time, result)
-            if result and time.year >= 2023 then
-                log.info("util_ntp.sync", "同步完成, 时间正常")
-                sys.timerStopAll(sync)
-                return
-            end
-            log.info("util_ntp.sync", "同步完成, 时间异常")
+    ntp.timeSync(1, function(time, result)
+        if result and time.year >= 2023 then
+            log.info("util_ntp.sync", "同步完成, 时间正常")
+            sys.timerStopAll(sync)
+            return
         end
-    )
+        log.info("util_ntp.sync", "同步完成, 时间异常")
+    end)
 end
