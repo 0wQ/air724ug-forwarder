@@ -11,39 +11,67 @@ end
 
 local options = {
     {
-        name = "音量",
+        name = "扬声器音量",
         func = function()
             local vol = nvm.get("AUDIO_VOLUME") or 0
-            vol = vol >= 7 and 0 or vol + 1
+            vol = vol >= 5 and 0 or vol + 1
             nvm.set("AUDIO_VOLUME", vol)
             tts("音量 " .. vol)
         end,
     },
     {
-        name = "静音",
+        name = "扬声器静音",
         func = function()
             nvm.set("AUDIO_VOLUME", 0)
+        end,
+    },
+    {
+        name = "通话音量",
+        func = function()
+            local vol = nvm.get("CALL_VOLUME") or 0
+            vol = vol >= 7 and 0 or vol + 1
+            nvm.set("CALL_VOLUME", vol)
+            tts("音量 " .. vol)
+        end,
+    },
+    {
+        name = "麦克音量",
+        func = function()
+            local vol = nvm.get("MIC_VOLUME") or 0
+            vol = vol >= 15 and 0 or vol + 5
+            nvm.set("MIC_VOLUME", vol)
+            tts("音量 " .. vol)
+        end,
+    },
+    {
+        name = function()
+            local number = "无"
+            if type(CALL_NUMBER) == "string" and CALL_NUMBER ~= "" then
+                number = CALL_NUMBER
+            end
+            return "回拨电话 " .. number
+        end,
+        func = function()
+            if type(CALL_NUMBER) == "string" and CALL_NUMBER ~= "" then
+                -- 修改来电动作为无操作, 等待挂断后再修改回去
+                sys.taskInit(function()
+                    local old_call_in_action = nvm.get("CALL_IN_ACTION")
+                    nvm.set("CALL_IN_ACTION", 0)
+                    sys.waitUntil("CALL_DISCONNECTED", 1000 * 30)
+                    nvm.set("CALL_IN_ACTION", old_call_in_action)
+                    log.info("handler_powerkey", "恢复来电动作配置项", old_call_in_action)
+                end)
+                tts("正在拨打")
+                sys.timerStart(cc.dial, 3000, CALL_NUMBER)
+            else
+                tts("无来电号码")
+            end
         end,
     },
     {
         name = "测试通知",
         func = function()
             util_notify.add("#ALIVE")
-            -- for i = 1, 5 do
-            --     util_notify.add(string.rep("测试通知", 200) .. i)
-            -- end
-        end,
-    },
-    {
-        name = "网卡",
-        func = function()
-            nvm.set("RNDIS_ENABLE", not nvm.get("RNDIS_ENABLE"))
-            if nvm.get("RNDIS_ENABLE") then
-                ril.request("AT+RNDISCALL=1,0")
-            else
-                ril.request("AT+RNDISCALL=0,0")
-            end
-            tts("网卡 " .. (nvm.get("RNDIS_ENABLE") and "开" or "关"))
         end,
     },
     {
@@ -67,24 +95,22 @@ local options = {
         end,
     },
     {
-        name = "通话播放",
-        func = function()
-            nvm.set("CALL_PLAY_TO_SPEAKER_ENABLE", not nvm.get("CALL_PLAY_TO_SPEAKER_ENABLE"))
-            tts("通话播放 " .. (nvm.get("CALL_PLAY_TO_SPEAKER_ENABLE") and "开" or "关"))
-        end,
-    },
-    {
-        name = "通话麦克风",
-        func = function()
-            nvm.set("CALL_MIC_ENABLE", not nvm.get("CALL_MIC_ENABLE"))
-            tts("通话麦克风 " .. (nvm.get("CALL_MIC_ENABLE") and "开" or "关"))
-        end,
-    },
-    {
         name = "开机通知",
         func = function()
             nvm.set("BOOT_NOTIFY", not nvm.get("BOOT_NOTIFY"))
             tts("开机通知 " .. (nvm.get("BOOT_NOTIFY") and "开" or "关"))
+        end,
+    },
+    {
+        name = "网卡",
+        func = function()
+            nvm.set("RNDIS_ENABLE", not nvm.get("RNDIS_ENABLE"))
+            if nvm.get("RNDIS_ENABLE") then
+                ril.request("AT+RNDISCALL=1,0")
+            else
+                ril.request("AT+RNDISCALL=0,0")
+            end
+            tts("网卡 " .. (nvm.get("RNDIS_ENABLE") and "开" or "关"))
         end,
     },
     {
@@ -178,5 +204,9 @@ end, function()
     else
         options_select = options_select + 1
     end
-    tts(options[options_select].name)
+    if type(options[options_select].name) == "function" then
+        tts(options[options_select].name())
+    else
+        tts(options[options_select].name)
+    end
 end)

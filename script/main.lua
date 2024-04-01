@@ -31,11 +31,24 @@ require "handler_call"
 require "handler_powerkey"
 require "handler_sms"
 
--- 设置音频功放类型
--- CLASSAB: 0
-ril.request("AT+SPKPA=0")
--- CLASSD: 1 (默认)
--- ril.request("AT+SPKPA=1")
+-- 输出音频通道选项, 0:听筒 1:耳机 2:喇叭
+-- 输入音频通道选项, 0:主mic 3:耳机mic
+
+-- 静音音频通道
+AUDIO_OUTPUT_CHANNEL_MUTE = 0
+AUDIO_INPUT_CHANNEL_MUTE = 3
+-- 正常音频通道
+AUDIO_OUTPUT_CHANNEL_NORMAL = 2
+AUDIO_INPUT_CHANNEL_NORMAL = 0
+
+audio.setChannel(AUDIO_OUTPUT_CHANNEL_NORMAL, AUDIO_INPUT_CHANNEL_NORMAL)
+
+-- 配置内部 PA 类型 audiocore.CLASS_AB, audiocore.CLASS_D
+audiocore.setpa(audiocore.CLASS_AB)
+-- 配置外部 PA
+-- pins.setup(pio.P0_14, 0)
+-- audiocore.pa(pio.P0_14, 1, 0, 0)
+-- audio.setChannel(1)
 
 -- 定时查询温度
 sys.timerLoopStart(util_temperature.get, 1000 * 30)

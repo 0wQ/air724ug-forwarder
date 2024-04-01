@@ -92,12 +92,6 @@ SMS_TTS = 0
 -- 电话接通后 TTS 语音内容, 在播放完后开始录音, 如果注释掉或者为空则播放 audio_pickup_record.amr 或 audio_pickup_hangup.amr 文件
 -- TTS_TEXT = "您好，请在语音结束后留言，稍后将发送到机主，结束请挂机。"
 
--- 扬声器播放通话声音
-CALL_PLAY_TO_SPEAKER_ENABLE = false
-
--- 开启通话麦克风
-CALL_MIC_ENABLE = false
-
 -- 来电动作, 0：无操作，1：接听(默认)，2：挂断, 3：接听后挂断
 CALL_IN_ACTION = 1
 
@@ -105,6 +99,12 @@ CALL_IN_ACTION = 1
 
 -- 扬声器音量, 0-7
 AUDIO_VOLUME = 1
+
+-- 通话音量 0-7
+CALL_VOLUME = 5
+
+-- 麦克音量 0-15
+MIC_VOLUME = 15
 
 -- 开启 RNDIS 网卡
 RNDIS_ENABLE = false
