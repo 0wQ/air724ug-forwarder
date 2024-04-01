@@ -67,6 +67,21 @@ netLed.updateBlinkTime("GPRS", 200, 2000)
 -- 开机查询本机号码
 sys.timerStart(ril.request, 3000, "AT+CNUM")
 
+-- SIM 热插拔
+pins.setup(23, function(msg)
+    if msg == cpu.INT_GPIO_POSEDGE then
+        log.info("SIM_DETECT", "插卡")
+        rtos.notify_sim_detect(1, 1)
+        -- 查询本机号码
+        sys.timerStart(ril.request, 2000, "AT+CNUM")
+        -- 发送插卡通知
+        util_notify.add("#SIM_INSERT")
+    else
+        log.info("SIM_DETECT", "拔卡")
+        rtos.notify_sim_detect(1, 0)
+    end
+end, pio.PULLDOWM)
+
 sys.taskInit(function()
     -- 等待网络就绪
     sys.waitUntil("IP_READY_IND", 1000 * 60 * 2)
