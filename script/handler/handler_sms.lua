@@ -134,7 +134,7 @@ local function smsCallback(sender_number, sms_content, datetime)
 
     -- TTS 播报全部短信内容
     if nvm.get("SMS_TTS") == 2 then
-        audio.setTTSSpeed(70)
+        audio.setTTSSpeed(80)
         sys.timerStart(util_audio.play, 1000 * 2, 5, "TTS", "[n1]收到来自" .. sender_number .. "的短信，" .. sms_content)
     end
 end

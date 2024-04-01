@@ -5,7 +5,7 @@ local function tts(text, vol)
     end
     vol = vol or nvm.get("AUDIO_VOLUME") or 1
     vol = vol == 0 and 1 or vol
-    audio.setTTSSpeed(80)
+    audio.setTTSSpeed(90)
     util_audio.play(0, "TTS", text, vol)
 end
 
