@@ -4,12 +4,12 @@ module(...)
 
 -- 通知类型, 支持配置多个
 -- NOTIFY_TYPE = { "custom_post", "telegram", "pushdeer", "bark", "dingtalk", "feishu", "wecom", "pushover", "inotify", "next-smtp-proxy", "gotify", "serverchan" }
-NOTIFY_TYPE = { "feishu" }
+NOTIFY_TYPE = { "custom_post" }
 
 -- custom_post 通知配置, 自定义 POST 请求, CUSTOM_POST_BODY_TABLE 中的 {msg} 会被替换为通知内容
--- CUSTOM_POST_URL = "https://sctapi.ftqq.com/<SENDKEY>.send"
--- CUSTOM_POST_CONTENT_TYPE = "application/json"
--- CUSTOM_POST_BODY_TABLE = { ["title"] = "这里是标题", ["desp"] = "{msg}" }
+CUSTOM_POST_URL = "https://sctapi.ftqq.com/<SENDKEY>.send"
+CUSTOM_POST_CONTENT_TYPE = "application/json"
+CUSTOM_POST_BODY_TABLE = { ["title"] = "这里是标题", ["desp"] = "{msg}" }
 
 -- telegram 通知配置, https://github.com/0wQ/telegram-notify 或者自行反代
 -- TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
@@ -27,7 +27,7 @@ NOTIFY_TYPE = { "feishu" }
 -- DINGTALK_WEBHOOK = "https://oapi.dingtalk.com/robot/send?access_token=xxx"
 
 -- feishu 通知配置, https://open.feishu.cn/document/ukTMukTMukTM/ucTM5YjL3ETO24yNxkjN
-FEISHU_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
+-- FEISHU_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
 
 -- wecom 通知配置, https://developer.work.weixin.qq.com/document/path/91770
 -- WECOM_WEBHOOK = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx"
@@ -69,7 +69,7 @@ BOOT_NOTIFY = true
 NOTIFY_APPEND_MORE_INFO = true
 
 -- 通知最大重发次数
-NOTIFY_RETRY_MAX = 20
+NOTIFY_RETRY_MAX = 100
 
 -------------------------------------------------- 录音上传配置 --------------------------------------------------
 

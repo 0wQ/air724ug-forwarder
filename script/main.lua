@@ -51,9 +51,9 @@ audiocore.setpa(audiocore.CLASS_AB)
 -- audio.setChannel(1)
 
 -- 定时查询温度
-sys.timerLoopStart(util_temperature.get, 1000 * 30)
+sys.timerLoopStart(util_temperature.get, 1000 * 60)
 -- 定时查询 信号强度 基站信息
-net.startQueryAll(60000, 300000)
+net.startQueryAll(1000 * 60, 1000 * 60 * 10)
 
 -- RNDIS
 ril.request("AT+RNDISCALL=" .. (nvm.get("RNDIS_ENABLE") and 1 or 0) .. ",0")
@@ -72,7 +72,7 @@ sys.taskInit(function()
     sys.waitUntil("IP_READY_IND", 1000 * 60 * 2)
 
     -- 等待获取 Band 值
-    sys.wait(1000 * 5)
+    -- sys.wait(1000 * 5)
 
     -- 开机通知
     if nvm.get("BOOT_NOTIFY") then
