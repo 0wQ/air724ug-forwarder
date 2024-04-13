@@ -277,14 +277,15 @@ local function buildDeviceInfo()
 
     -- 本机号码
     local number = sim.getNumber()
-    if number then
-        if string.sub(number, 1, 1) ~= "+" then
-            number = "+" .. number
-        end
-        msg = msg .. "\n本机号码: " .. number
+    -- ICCID
+    local iccid = sim.getIccid()
+    if number and number ~= "" then
+        msg = msg .. "\n本机号码: " .. (string.sub(number, 1, 1) ~= "+" and "+" .. number or number)
+    elseif iccid and iccid ~= "" then
+        msg = msg .. "\nICCID: " .. iccid
     end
 
-    -- -- IMEI
+    -- IMEI
     -- local imei = misc.getImei()
     -- if imei ~= "" then
     --     msg = msg .. "\nIMEI: " .. imei
