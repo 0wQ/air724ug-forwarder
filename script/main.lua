@@ -91,7 +91,7 @@ sys.taskInit(function()
 
     -- 开机通知
     if nvm.get("BOOT_NOTIFY") then
-        util_notify.add("#BOOT")
+        util_notify.add("#BOOT_" .. rtos.poweron_reason())
     end
 
     -- 定时查询流量
