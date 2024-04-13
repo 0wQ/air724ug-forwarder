@@ -14,7 +14,7 @@ local options = {
         name = "扬声器音量",
         func = function()
             local vol = nvm.get("AUDIO_VOLUME") or 0
-            vol = vol >= 5 and 0 or vol + 1
+            vol = vol >= 7 and 0 or vol + 1
             nvm.set("AUDIO_VOLUME", vol)
             tts("音量 " .. vol)
         end,
@@ -135,7 +135,7 @@ local options = {
     {
         name = "查询信号",
         func = function()
-            tts("当前信号 " .. net.getRsrp() - 140 .. "dbm")
+            tts(net.getRsrp() - 140 .. "dbm")
             net.csqQueryPoll()
         end,
     },
@@ -144,18 +144,24 @@ local options = {
         func = function()
             local m = collectgarbage("count")
             m = m > 1024 and string.format("%.2f", m / 1024) .. " M" or string.format("%.2f", m) .. " K"
-            tts("已用内存 " .. m)
+            tts("已用 " .. m)
         end,
     },
     {
         name = "查询电压",
         func = function()
-            local id = 5
-            local adcval, voltval = adc.read(id)
-            if adcval ~= 0xffff then
-                log.info("ADC的原始测量数据和电压值:", adcval, voltval)
-                tts("当前电压 " .. voltval / 1000)
+            local vbatt = misc.getVbatt()
+            if vbatt and vbatt ~= "" then
+                tts("当前电压 " .. vbatt / 1000)
             end
+        end,
+    },
+    {
+        name = "查询卡号",
+        func = function()
+            local num = sim.getNumber()
+            num = num ~= "" and num or sim.getIccid()
+            tts(num)
         end,
     },
     {
