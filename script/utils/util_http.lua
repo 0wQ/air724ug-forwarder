@@ -14,7 +14,7 @@ function fetch(timeout, method, url, headers, body)
     timeout = timeout or 1000 * 30
 
     http_count = http_count + 1
-    local id = "http_c" .. http_count .. "_r" .. math.random(1000, 9999)
+    local id = "http_c" .. http_count
 
     local function callback(res_result, res_prompt, res_headers, res_body)
         sys.publish(id, { res_result, res_prompt, res_headers, res_body })
@@ -22,12 +22,17 @@ function fetch(timeout, method, url, headers, body)
 
     log.info("util_http.fetch", "开始请求", "id:", id)
     http.request(method, url, nil, headers, body, timeout, callback)
-    local result, data = sys.waitUntil(id, 1000 * 60)
-    log.info("util_http.fetch", "请求结束", "id:", id)
+    local result, data = sys.waitUntil(id, timeout + 10000)
 
-    if result == false then
+    if not result or not data then
         log.warn("util_http.fetch", "请求超时", "id:", id)
+        return -97
     end
 
-    return tonumber(data[2]) or -99, data[3] or {}, data[4] or ""
+    if data[1] then
+        return tonumber(data[2]), data[3] or {}, data[4] or ""
+    else
+        log.warn("util_http.fetch", "请求失败", "id:", id, "error:", data[2])
+        return -98, data[2] or {}, data[3] or ""
+    end
 end
