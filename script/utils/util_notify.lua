@@ -322,23 +322,28 @@ local function buildDeviceInfo()
         msg = msg .. "\n频段: B" .. band
     end
 
-    -- -- 板卡
-    -- local board_version = misc.getModelType()
-    -- if board_version ~= "" then
-    --     msg = msg .. "\n板卡: " .. board_version
-    -- end
-
-    -- -- 系统版本
-    -- local os_version = misc.getVersion()
-    -- if os_version ~= "" then
-    --     msg = msg .. "\n系统版本: " .. os_version
-    -- end
-
     -- 温度
     local temperature = util_temperature.get()
     if temperature ~= "-99" then
         msg = msg .. "\n温度: " .. temperature .. "℃"
     end
+
+    -- 型号
+    -- local model_type = misc.getModelType()
+    -- if model_type ~= "" then
+    --     msg = msg .. "\n型号: " .. model_type
+    -- end
+
+    -- 系统版本
+    -- local os_version = misc.getVersion()
+    -- if os_version ~= "" then
+    --     msg = msg .. "\n版本: " .. os_version
+    -- end
+
+    -- 电压
+    local vbat = misc.getVbatt()
+    vbat = string.format("%.3f", vbat / 1000)
+    msg = msg .. "\n电压: " .. vbat .. "V"
 
     return msg
 end
@@ -346,7 +351,7 @@ end
 --- 发送通知
 -- @param msg (string) 通知内容
 -- @param channel (string) 通知渠道
--- @return (boolean) 是否需要重发
+-- @return (boolean) 是否发送成功/不需要重发
 function send(msg, channel)
     log.info("util_notify.send", "发送通知", channel)
 
