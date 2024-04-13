@@ -65,7 +65,11 @@ netLed.updateBlinkTime("SCK", 50, 50)
 netLed.updateBlinkTime("GPRS", 200, 2000)
 
 -- 开机查询本机号码
+sim.setQueryNumber(true)
 sys.timerStart(ril.request, 3000, "AT+CNUM")
+
+-- SIM 自动切换开关
+ril.request("AT*SIMAUTO=1")
 
 -- SIM 热插拔
 pins.setup(23, function(msg)
@@ -73,9 +77,9 @@ pins.setup(23, function(msg)
         log.info("SIM_DETECT", "插卡")
         rtos.notify_sim_detect(1, 1)
         -- 查询本机号码
-        sys.timerStart(ril.request, 2000, "AT+CNUM")
+        sys.timerStart(ril.request, 1000, "AT+CNUM")
         -- 发送插卡通知
-        util_notify.add("#SIM_INSERT")
+        sys.timerStart(util_notify.add, 2000, "#SIM_INSERT")
     else
         log.info("SIM_DETECT", "拔卡")
         rtos.notify_sim_detect(1, 0)
