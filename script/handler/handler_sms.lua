@@ -11,14 +11,10 @@ local function isElementInTable(myTable, target)
     return false
 end
 
---- 判断号码是否符合触发短信控制的条件
+--- 判断号码是否符合要求
 -- @param number (string) 待判断的号码
--- @param sender_number (string) 短信发送者号码
 -- @return (boolean) 如果号码符合条件则返回 true，否则返回 false
-local function isAllowNumber(number, sender_number)
-    local my_number = sim.getNumber()
-
-    -- 判断号码是否符合要求
+local function checkNumber(number)
     if number == nil or type(number) ~= "string" then
         return false
     end
@@ -26,24 +22,20 @@ local function isAllowNumber(number, sender_number)
     if number:len() < 5 then
         return false
     end
-    -- 不允许给本机号码发短信
-    if number == my_number or "86" .. number == my_number then
-        return false
-    end
-    -- 不允许给短信发送者发短信
-    if number == sender_number or "86" .. number == sender_number then
-        return false
-    end
 
+    return true
+end
+
+--- 判断白名单号码是否符合触发短信控制的条件
+-- @param sender_number (string) 短信发送者号码
+-- @return (boolean) 如果号码符合条件则返回 true，否则返回 false
+local function isWhiteListNumber(sender_number)
     -- 判断如果未设置白名单号码, 允许所有号码触发
     if type(config.SMS_CONTROL_WHITELIST_NUMBERS) ~= "table" or #config.SMS_CONTROL_WHITELIST_NUMBERS == 0 then
         return true
     end
-
     -- 已设置白名单号码, 判断是否在白名单中
-    local isInWhiteList = isElementInTable(config.SMS_CONTROL_WHITELIST_NUMBERS, sender_number)
-    log.info("handler_sms.isAllowNumber", "是否在白名单", isInWhiteList)
-    return isInWhiteList
+    return isElementInTable(config.SMS_CONTROL_WHITELIST_NUMBERS, sender_number)
 end
 
 --- 根据规则匹配短信内容是否符合要求
@@ -53,39 +45,91 @@ local function smsContentMatcher(sender_number, sms_content)
     sender_number = type(sender_number) == "string" and sender_number or ""
     sms_content = type(sms_content) == "string" and sms_content or ""
 
+    -- 判断发送者是否为白名单号码
+    if not isWhiteListNumber(sender_number) then
+        log.info("handler_sms.smsContentMatcher", "非白名单号码")
+        return
+    end
+
+    -- 如果短信内容是 `CCFC,?`, 则查询无条件呼转状态
+    if sms_content == "CCFC,?" then
+        log.info("handler_sms.smsContentMatcher", "匹配成功: <查询无条件呼转状态>")
+
+        -- 查询无条件呼转状态
+        ril.request("AT+CCFC=0,2")
+
+        -- 发送通知
+        util_notify.add({ sender_number .. " 的短信触发了 <查询无条件呼转状态>", "", "#CONTROL" })
+
+        return
+    else
+        log.info("handler_sms.smsContentMatcher", "匹配失败: <查询无条件呼转状态>")
+    end
+
+    -- 如果短信内容是 `CCFC,{ccfc_number}`, 则设置无条件呼转, 当 ccfc_number=="0" 时，关闭无条件呼转
+    local ccfc_number = sms_content:match("^CCFC,(%d+)$")
+    -- 判断号码
+    if checkNumber(ccfc_number) or ccfc_number == "0" then
+        local is_disable = ccfc_number == "0"
+        local action_name = is_disable and "关闭无条件呼转" or "设置无条件呼转"
+
+        log.info("handler_sms.smsContentMatcher", "匹配成功: <" .. action_name .. "无条件呼转>", ccfc_number)
+
+        -- 注册: AT+CCFC=0,3,18888888888
+        -- 删除: AT+CCFC=0,4,0
+        local at_command = is_disable and "AT+CCFC=0,4,0" or ("AT+CCFC=0,3," .. ccfc_number)
+
+        -- 关闭/设置无条件呼转
+        ril.request(at_command, nil, function(cmd, result)
+            log.info("handler_sms.smsContentMatcher", action_name, result)
+            util_notify.add({ action_name .. (result and "成功" or "失败"), "", "#CONTROL" })
+        end)
+
+        -- 发送通知
+        util_notify.add({ sender_number .. " 的短信触发了 <" .. action_name .. ">", "", "呼转号码: " .. ccfc_number, "#CONTROL" })
+
+        return
+    else
+        log.info("handler_sms.smsContentMatcher", "匹配失败: <关闭/设置无条件呼转>")
+    end
+
     -- 如果短信内容是 `CALL,{called_number}`, 则拨打电话
     local called_number = sms_content:match("^CALL,(%d+)$")
-    called_number = called_number or ""
+    -- 判断号码
+    if checkNumber(called_number) then
+        log.info("handler_sms.smsContentMatcher", "匹配成功: <拨打电话>", called_number)
 
-    -- 判断号码符合要求
-    if isAllowNumber(called_number, sender_number) then
-        log.info("handler_sms.smsContentMatcher", "拨打电话", called_number)
         -- 拨打电话
         sys.taskInit(cc.dial, called_number)
+
         -- 发送通知
-        util_notify.add({ sender_number .. "的短信触发了<拨打电话>", "", "被叫人号码: " .. called_number, "#CONTROL" })
+        util_notify.add({ sender_number .. " 的短信触发了 <拨打电话>", "", "被叫人号码: " .. called_number, "#CONTROL" })
+
         return
+    else
+        log.info("handler_sms.smsContentMatcher", "匹配失败: <拨打电话>")
     end
 
     -- 如果短信内容是 `SMS,{receiver_number},{sms_content_to_be_sent}`, 则发送短信
     local receiver_number, sms_content_to_be_sent = sms_content:match("^SMS,(%d+),(.*)$")
-    receiver_number = receiver_number or ""
-    sms_content_to_be_sent = sms_content_to_be_sent or ""
-
-    -- 判断号码符合要求, 短信内容非空
-    if isAllowNumber(receiver_number, sender_number) and sms_content_to_be_sent:len() > 0 then
+    -- 判断号码, 短信长度
+    if checkNumber(receiver_number) and type(sms_content_to_be_sent) == "string" and sms_content_to_be_sent:len() > 0 then
         -- 防止循环发送短信
         if string.sub(sms_content_to_be_sent, 1, 4) == "SMS," then
             return
         end
 
-        log.info("handler_sms.smsContentMatcher", "发送短信给" .. receiver_number .. ": " .. sms_content_to_be_sent)
+        log.info("handler_sms.smsContentMatcher", "匹配成功: <发送短信>", receiver_number, sms_content_to_be_sent)
 
         -- 发送短信
         sys.taskInit(sms.send, receiver_number, sms_content_to_be_sent)
+
         -- 发送通知
-        util_notify.add({ sender_number .. "的短信触发了<发送短信>", "", "收件人号码: " .. receiver_number, "短信内容: " .. sms_content_to_be_sent, "#CONTROL" })
+        util_notify.add({ sender_number .. " 的短信触发了 <发送短信>", "", "收件人号码: " .. receiver_number, "短信内容: " .. sms_content_to_be_sent, "#CONTROL" })
+
         return
+    else
+        log.info("handler_sms.smsContentMatcher", "匹配失败: <发送短信>")
     end
 end
 
@@ -142,9 +186,7 @@ end
 -- 设置短信回调
 sms.setNewSmsCb(smsCallback)
 
---  设置 urc 回调
--- (URC) 事件控制指示：+CIEV
-local function urc(data, prefix)
+ril.regUrc("+CIEV", function(data, prefix)
     data = type(data) == "string" and data or ""
     -- 判断彩信
     if string.find(data, "MMS") then
@@ -161,6 +203,20 @@ local function urc(data, prefix)
         log.info("handler_sms.urc", "短信存储满", prefix, data)
         return
     end
-end
+end)
 
-ril.regUrc("+CIEV", urc)
+ril.regUrc("+CCFC", function(data, prefix)
+    log.info("查询呼转状态", data, prefix)
+
+    -- https://www.openluat.com/Product/file/rda8955/AirM2M%20无线模块AT命令手册V3.96.pdf
+    -- AT+CCFC=<reason>,<mode>[,<number>[,<type>[,<class>[,<subaddr>[,<atype>[,<time>]]]]]]
+    -- 如果<mode>等于2，并且命令成功（限定<reason>等于0~3，也就是说如果<mode>等于2，<reason>不能等于4或5）
+    -- 对于已经开通呼叫转移的用户，则返回
+    -- +CCFC:<status>,<class1>[,<number>,<type>[,<subaddr>,<satype>[,<time>]]]
+    -- 如果没有注册过呼叫转移的用户，则返回: +CCFC:<status>,<class>
+
+    local status = string.find(data, "^%+CCFC:1")
+
+    -- 发送通知
+    util_notify.add({ "呼转状态查询结果: " .. (status and "已设置" or "未设置"), data, "", "#CONTROL" })
+end)
