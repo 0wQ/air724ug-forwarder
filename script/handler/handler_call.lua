@@ -332,3 +332,17 @@ ril.regUrc("RING", function()
     end
     audio.play(4, "FILE", "/lua/audio_ring.mp3", vol)
 end)
+
+-- 来电中保持 LTE 灯闪烁
+sys.taskInit(function()
+    while true do
+        if CALL_IN or cc.anyCallExist() then
+            sys.publish("LTE_LED_UPDATE", false)
+            sys.wait(100)
+            sys.publish("LTE_LED_UPDATE", true)
+            sys.wait(100)
+        else
+            sys.waitUntil("RING", 1000 * 5)
+        end
+    end
+end)
