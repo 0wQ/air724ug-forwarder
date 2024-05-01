@@ -59,8 +59,10 @@ net.startQueryAll(1000 * 60, 1000 * 60 * 10)
 ril.request("AT+RNDISCALL=" .. (nvm.get("RNDIS_ENABLE") and 1 or 0) .. ",0")
 
 -- NET 指示灯, LTE 指示灯
-pmd.ldoset(2, pmd.LDO_VLCD)
-netLed.setup(true, pio.P0_1)
+if nvm.get("LED_ENABLE") then
+    pmd.ldoset(2, pmd.LDO_VLCD)
+end
+netLed.setup(true, pio.P0_1, pio.P0_4)
 netLed.updateBlinkTime("SCK", 50, 50)
 netLed.updateBlinkTime("GPRS", 200, 2000)
 

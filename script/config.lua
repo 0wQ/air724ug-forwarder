@@ -122,3 +122,6 @@ MIC_VOLUME = 15
 
 -- 开启 RNDIS 网卡
 RNDIS_ENABLE = false
+
+-- 状态指示灯开关
+LED_ENABLE = true
