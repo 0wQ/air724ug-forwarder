@@ -51,6 +51,24 @@ local function smsContentMatcher(sender_number, sms_content)
         return
     end
 
+    -- 如果短信内容是 `SIMSWITCH`, 则切换SIM
+    if sms_content == "SIMSWITCH" then
+        log.info("handler_sms.smsContentMatcher", "匹配成功: <切换SIM>")
+
+        local action_name = sim.getId() == 0 and "主卡槽优先 -> 副卡槽优先" or "副卡槽优先 -> 主卡槽优先"
+
+        -- 发送通知
+        util_notify.add({ sender_number .. " 的短信触发了 <切换SIM>", action_name, "正在重启...", "#CONTROL" })
+
+        sim.setId(sim.getId() == 0 and 1 or 0)
+
+        -- 重启
+        sys.timerStart(sys.restart, 5000, "SIMSWITCH")
+        return
+    else
+        log.info("handler_sms.smsContentMatcher", "匹配失败: <切换SIM>")
+    end
+
     -- 如果短信内容是 `CCFC,?`, 则查询所有呼转状态
     if sms_content == "CCFC,?" then
         log.info("handler_sms.smsContentMatcher", "匹配成功: <查询所有呼转状态>")
