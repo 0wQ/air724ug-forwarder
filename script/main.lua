@@ -67,6 +67,9 @@ netLed.updateBlinkTime("GPRS", 200, 2000)
 -- 开机查询本机号码
 sim.setQueryNumber(true)
 sys.timerStart(ril.request, 3000, "AT+CNUM")
+-- 如果查询不到本机号码, 可以取消下面注释的代码, 尝试手动写入到 SIM 卡, 写入成功后注释掉即可
+-- sys.timerStart(ril.request, 5000, 'AT+CPBS="ON"')
+-- sys.timerStart(ril.request, 6000, 'AT+CPBW=1,"+8618888888888",145')
 
 -- SIM 自动切换开关
 ril.request("AT*SIMAUTO=1")
