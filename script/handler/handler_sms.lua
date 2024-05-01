@@ -51,35 +51,35 @@ local function smsContentMatcher(sender_number, sms_content)
         return
     end
 
-    -- 如果短信内容是 `CCFC,?`, 则查询无条件呼转状态
+    -- 如果短信内容是 `CCFC,?`, 则查询所有呼转状态
     if sms_content == "CCFC,?" then
-        log.info("handler_sms.smsContentMatcher", "匹配成功: <查询无条件呼转状态>")
+        log.info("handler_sms.smsContentMatcher", "匹配成功: <查询所有呼转状态>")
 
-        -- 查询无条件呼转状态
-        ril.request("AT+CCFC=0,2")
+        -- 查询所有呼叫前转状态
+        ril.request("AT+CCFC=4,2")
 
         -- 发送通知
-        util_notify.add({ sender_number .. " 的短信触发了 <查询无条件呼转状态>", "", "#CONTROL" })
+        util_notify.add({ sender_number .. " 的短信触发了 <查询所有呼转状态>", "", "#CONTROL" })
 
         return
     else
-        log.info("handler_sms.smsContentMatcher", "匹配失败: <查询无条件呼转状态>")
+        log.info("handler_sms.smsContentMatcher", "匹配失败: <查询所有呼转状态>")
     end
 
-    -- 如果短信内容是 `CCFC,{ccfc_number}`, 则设置无条件呼转, 当 ccfc_number=="0" 时，关闭无条件呼转
+    -- 如果短信内容是 `CCFC,{ccfc_number}`, 则设置无条件呼转, 当 ccfc_number=="0" 时，关闭所有呼转
     local ccfc_number = sms_content:match("^CCFC,(%d+)$")
     -- 判断号码
     if checkNumber(ccfc_number) or ccfc_number == "0" then
         local is_disable = ccfc_number == "0"
-        local action_name = is_disable and "关闭无条件呼转" or "设置无条件呼转"
+        local action_name = is_disable and "关闭所有呼转" or "设置无条件呼转"
 
         log.info("handler_sms.smsContentMatcher", "匹配成功: <" .. action_name .. "无条件呼转>", ccfc_number)
 
-        -- 注册: AT+CCFC=0,3,18888888888
-        -- 删除: AT+CCFC=0,4,0
-        local at_command = is_disable and "AT+CCFC=0,4,0" or ("AT+CCFC=0,3," .. ccfc_number)
+        -- 注册无条件呼转: AT+CCFC=0,3,18888888888
+        -- 删除所有呼叫前转: AT+CCFC=4,4,0
+        local at_command = is_disable and "AT+CCFC=4,4,0" or ("AT+CCFC=0,3," .. ccfc_number)
 
-        -- 关闭/设置无条件呼转
+        -- 关闭/设置呼转
         ril.request(at_command, nil, function(cmd, result)
             log.info("handler_sms.smsContentMatcher", action_name, result)
             util_notify.add({ action_name .. (result and "成功" or "失败"), "", "#CONTROL" })
@@ -90,7 +90,7 @@ local function smsContentMatcher(sender_number, sms_content)
 
         return
     else
-        log.info("handler_sms.smsContentMatcher", "匹配失败: <关闭/设置无条件呼转>")
+        log.info("handler_sms.smsContentMatcher", "匹配失败: <关闭/设置呼转>")
     end
 
     -- 如果短信内容是 `CALL,{called_number}`, 则拨打电话
