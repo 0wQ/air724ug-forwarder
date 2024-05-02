@@ -13,7 +13,7 @@ local record_upload_url = trimSlash(nvm.get("UPLOAD_URL") or "") .. "/record"
 -- 录音格式, 1:pcm 2:wav 3:amrnb 4:speex
 local record_format = 2
 
--- 录音质量, 仅 amrnb 格式有效, 0：一般 1：中等 2：高 3：无损
+-- 录音质量, 仅 amrnb 格式有效, 0:一般 1:中等 2:高 3:无损
 local record_quality = 3
 
 -- 录音最长时间, 单位秒, 0-50
@@ -47,56 +47,76 @@ local function getCallInAction()
     return nvm.get("CALL_IN_ACTION")
 end
 
--- 音量配置
-audio.setCallVolume(nvm.get("CALL_VOLUME") or 7) -- 通话音量等级 0-7
-audio.setMicVolume(nvm.get("MIC_VOLUME") or 15) -- 麦克音量等级 0-15
-
 -- 更新音频配置
 -- 用于实现通话时静音, 通话结束时恢复正常, 需要在 callIncoming / callConnected / callDisconnected 回调中调用
--- 当来电动作为无操作时, 设置音频正常
-local function updateAudioConfig(is_call_in)
+-- 注意:
+-- 如果通话音量设为0, 通话录音会没有声音
+-- 需要切换音频通道来实现通话静音
+-- 需实现:
+-- 通话时, 忽略扬声器音量, 使用通话音量 (如果扬声器音量大于通话音量, 则使用扬声器音量)
+-- 无论是否静音, 自动接听时, 通话录音中呼叫方声音正常
+-- 无论是否静音, 手动接听时, 音量均为正常
+local function updateAudioConfig(is_call_connected)
     local output_channel = AUDIO_OUTPUT_CHANNEL_NORMAL
     local input_channel = AUDIO_INPUT_CHANNEL_NORMAL
 
-    local call_volume_normal = 7
-    local mic_volume_normal = 15
+    local call_volume_normal = 5
+    local mic_volume_normal = 7
 
+    local audio_volume = nvm.get("AUDIO_VOLUME") or 0
     local call_volume = nvm.get("CALL_VOLUME") or call_volume_normal
     local mic_volume = nvm.get("MIC_VOLUME") or mic_volume_normal
 
+    audio_volume = type(audio_volume) == "string" and tonumber(audio_volume) or audio_volume
     call_volume = type(call_volume) == "string" and tonumber(call_volume) or call_volume
     mic_volume = type(mic_volume) == "string" and tonumber(mic_volume) or mic_volume
 
-    -- 来电动作无操作时, 手动接听, 音量恢复到正常
-    if is_call_in and getCallInAction() == 0 then
+    -- 来电动作 无操作 时, 如果手动接听, 并且原音量为0, 则音量设置到正常值
+    if is_call_connected and getCallInAction() == 0 then
         if call_volume <= 0 then
             call_volume = call_volume_normal
+            -- 手动接听, 如果 audio_volume > call_volume, 则使用 audio_volume
+            call_volume = audio_volume > call_volume and audio_volume or call_volume
         end
         if mic_volume <= 0 then
             mic_volume = mic_volume_normal
         end
     end
 
-    -- mic 音量 0 时，切换输入静音音频通道
-    if mic_volume <= 0 then
-        input_channel = AUDIO_INPUT_CHANNEL_MUTE
+    -- 来电动作 接听/接听后挂断 时, 麦克强制静音
+    if is_call_connected and (getCallInAction() == 1 or getCallInAction() == 3) then
+        mic_volume = 0
     end
 
-    log.info("handler_call.updateAudioConfig", "call_volume:", call_volume, "mic_volume:", mic_volume)
-    log.info("handler_call.updateAudioConfig", "output_channel:", output_channel, "input_channel:", input_channel)
+    -- 音量 0 时, 切换静音音频通道, 切换正常音量
+    if is_call_connected then
+        if call_volume <= 0 then
+            call_volume = call_volume_normal
+            output_channel = AUDIO_OUTPUT_CHANNEL_MUTE
+        end
+        if mic_volume <= 0 then
+            mic_volume = mic_volume_normal
+            input_channel = AUDIO_INPUT_CHANNEL_MUTE
+        end
+    end
 
     -- 设置音频通道
     audio.setChannel(output_channel, input_channel)
 
     -- 设置音量
     audio.setCallVolume(call_volume)
-    audio.setMicVolume(mic_volume)
+    audio.setMicVolume(mic_volume) -- 测试完全没效果
 
-    if is_call_in then
-        -- 设置 mic 增益等级, 通话建立成功之后设置才有效
-        audio.setMicGain("call", 7) -- 通话 mic 增益等级
-        audio.setMicGain("record", 7) -- 录音 mic 增益等级
+    -- 设置 mic 增益等级, 通话增益建立成功之后设置才有效
+    if is_call_connected then
+        audio.setMicGain("call", mic_volume)
+        -- audio.setMicGain("record", 7)
     end
+
+    log.info("handler_call.updateAudioConfig", "is_call_connected:", is_call_connected)
+    log.info("handler_call.updateAudioConfig", "output_channel:", output_channel, "input_channel:", input_channel)
+    log.info("handler_call.updateAudioConfig", "audio_volume:", audio_volume, "call_volume:", call_volume, "mic_volume:", mic_volume)
+    log.info("handler_call.updateAudioConfig", "getVolume:" .. audio.getVolume(), "getCallVolume:" .. audio.getCallVolume(), "getMicVolume:" .. audio.getMicVolume())
 end
 
 ------------------------------------------------- 录音上传相关 --------------------------------------------------
@@ -151,7 +171,7 @@ end
 
 -- 录音结束回调
 local function recordCallback(result, size)
-    -- 先停止所有挂断电话定时器，再挂断电话
+    -- 先停止所有挂断电话定时器, 再挂断电话
     sys.timerStopAll(cc.hangUp)
     cc.hangUp(CALL_NUMBER)
 
@@ -190,7 +210,7 @@ local function ttsCallback(result)
 
     -- 判断来电动作是否为接听后挂断
     if getCallInAction() == 3 then
-        -- 如果是接听后挂断，则不录音，直接返回
+        -- 如果是接听后挂断, 则不录音, 直接返回
         log.info("handler_call.callIncomingCallback", "来电动作", "接听后挂断")
         cc.hangUp(CALL_NUMBER)
     else
@@ -199,7 +219,7 @@ local function ttsCallback(result)
     end
 end
 
--- 播放 TTS，播放结束后开始录音
+-- 播放 TTS, 播放结束后开始录音
 local function tts()
     log.info("handler_call.tts", "TTS 播放开始")
 
@@ -245,6 +265,9 @@ local function callIncomingCallback(num)
         return
     end
 
+    -- 更新音频配置
+    updateAudioConfig(false)
+
     -- 来电动作, 无操作 or 接听
     if getCallInAction() == 0 then
         log.info("handler_call.callIncomingCallback", "来电动作", "无操作")
@@ -252,18 +275,13 @@ local function callIncomingCallback(num)
         log.info("handler_call.callIncomingCallback", "来电动作", "接听")
         -- 标记接听来电中
         CALL_IN = true
-
-        sys.timerStart(function()
-            -- 更新音频配置
-            updateAudioConfig(true)
-            -- 延迟接听电话
-            cc.accept(num)
-        end, 1000 * 2)
+        -- 延迟接听电话
+        local delay = getCallInAction() == 4 and (1000 * 30) or (1000 * 3)
+        sys.timerStart(cc.accept, delay, num)
     end
 
     -- 发送除了 来电动作为挂断 之外的通知
-    -- 0：无操作，1：接听(默认)，2：挂断, 3：接听后挂断
-    local action_desc = { [0] = "无操作", [1] = "接听", [2] = "挂断", [3] = "接听后挂断" }
+    local action_desc = { [0] = "无操作", [1] = "自动接听", [2] = "挂断", [3] = "自动接听后挂断", [4] = "等待30秒后自动接听" }
     util_notify.add({ "来电号码: " .. num, "来电动作: " .. action_desc[getCallInAction()], "", "#CALL #CALL_IN" })
 end
 
@@ -308,7 +326,7 @@ local function callDisconnectedCallback(discReason)
     -- 录音结束
     record.stop()
     -- TTS 结束
-    -- tts(util_audio.audioStream 播放的音频文件) 在播放中通话被挂断，然后在 callDisconnectedCallback 中调用 audio.stop() 有时不会触发 ttsCallback 回调
+    -- tts(util_audio.audioStream 播放的音频文件) 在播放中通话被挂断, 然后在 callDisconnectedCallback 中调用 audio.stop() 有时不会触发 ttsCallback 回调
     -- 调用 audiocore.stop() 可以解决这个问题
     audio.stop(function(result)
         log.info("handler_call.callDisconnectedCallback", "audio.stop() callback result:", result)

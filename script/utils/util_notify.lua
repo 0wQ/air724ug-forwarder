@@ -250,7 +250,7 @@ local notify = {
         log.info("util_notify", "POST", config.NEXT_SMTP_PROXY_API)
         return util_http.fetch(nil, "POST", config.NEXT_SMTP_PROXY_API, header, urlencodeTab(body))
     end,
-    -- 发送到 ServerChan
+    -- 发送到 serverchan
     ["serverchan"] = function(msg)
         if config.SERVERCHAN_API == nil or config.SERVERCHAN_API == "" then
             log.error("util_notify", "未配置 `config.SERVERCHAN_API`")
@@ -276,13 +276,11 @@ local function buildDeviceInfo()
     local msg = "\n"
 
     -- 本机号码
-    local number = sim.getNumber()
-    -- ICCID
-    local iccid = sim.getIccid()
-    if number and number ~= "" then
-        msg = msg .. "\n本机号码: " .. (string.sub(number, 1, 1) ~= "+" and "+" .. number or number)
-    elseif iccid and iccid ~= "" then
-        msg = msg .. "\nICCID: " .. iccid
+    local number = util_mobile.getNumber()
+    if #number >= 18 then
+        msg = msg .. "\nICCID: " .. number
+    else
+        msg = msg .. "\n本机号码: " .. number
     end
 
     -- IMEI
@@ -382,10 +380,7 @@ function send(msg, channel)
         log.info("util_notify.send", "发送通知失败, 无需重发", "code:", code, "body:", body)
         return true
     end
-    if code >= 200 and code < 500 then
-        -- http 2xx 成功
-        -- http 3xx 重定向, 重发也不会成功
-        -- http 4xx 客户端错误, 重发也不会成功
+    if code >= 200 and code < 500 and code ~= 408 and code ~= 409 and code ~= 425 and code ~= 429 then
         log.info("util_notify.send", "发送通知成功", "code:", code, "body:", body)
         return true
     end

@@ -60,3 +60,22 @@ function queryTraffic()
         log.warn("util_mobile.queryTraffic", "查询流量代码未配置")
     end
 end
+
+--- 获取本机号码, 没有则使用 ICCID
+-- @return (string) 本机号码
+function getNumber()
+    -- 本机号码
+    local number = sim.getNumber()
+    if number and number ~= "" then
+        number = number:gsub("^86", "")
+        return number
+    end
+
+    -- ICCID
+    local iccid = sim.getIccid()
+    if iccid and iccid ~= "" then
+        return iccid
+    end
+
+    return "unknown"
+end

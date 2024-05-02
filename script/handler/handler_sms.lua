@@ -158,6 +158,12 @@ end
 local function smsCallback(sender_number, sms_content, datetime)
     log.info("handler_sms.smsCallback", sender_number, datetime, sms_content)
 
+    LATEST_SMS = sms_content
+
+    -- 写入U盘
+    local str = datetime .. "\t" .. sender_number .. "\t" .. util_mobile.getNumber() .. "\t" .. sms_content:gsub("\r", "\\r"):gsub("\n", "\\n") .. "\n"
+    usbmsc.write("/usbmsc0/sms_history.txt", str)
+
     -- 发送通知
     util_notify.add({ sms_content, "", "发件号码: " .. sender_number, "发件时间: " .. datetime, "#SMS" })
     -- 短信内容匹配

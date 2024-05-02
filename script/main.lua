@@ -30,13 +30,14 @@ require "util_ntp"
 require "handler_call"
 require "handler_powerkey"
 require "handler_sms"
+require "usbmsc"
 
 -- 输出音频通道选项, 0:听筒 1:耳机 2:喇叭
--- 输入音频通道选项, 0:主mic 3:耳机mic
+-- 输入音频通道选项, 0:main_mic 1:auxiliary_mic 3:headphone_mic_left 4:headphone_mic_right
 
 -- 静音音频通道
 AUDIO_OUTPUT_CHANNEL_MUTE = 0
-AUDIO_INPUT_CHANNEL_MUTE = 3
+AUDIO_INPUT_CHANNEL_MUTE = 1
 -- 正常音频通道
 AUDIO_OUTPUT_CHANNEL_NORMAL = 2
 AUDIO_INPUT_CHANNEL_NORMAL = 0
@@ -44,11 +45,14 @@ AUDIO_INPUT_CHANNEL_NORMAL = 0
 audio.setChannel(AUDIO_OUTPUT_CHANNEL_NORMAL, AUDIO_INPUT_CHANNEL_NORMAL)
 
 -- 配置内部 PA 类型 audiocore.CLASS_AB, audiocore.CLASS_D
-audiocore.setpa(audiocore.CLASS_AB)
+audiocore.setpa(audiocore.CLASS_D)
 -- 配置外部 PA
 -- pins.setup(pio.P0_14, 0)
 -- audiocore.pa(pio.P0_14, 1, 0, 0)
 -- audio.setChannel(1)
+
+-- 设置睡眠等待时间
+-- ril.request("AT+WAKETIM=0")
 
 -- 定时查询温度
 sys.timerLoopStart(util_temperature.get, 1000 * 60)
