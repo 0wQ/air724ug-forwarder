@@ -39,7 +39,10 @@ CUSTOM_POST_BODY_TABLE = { ["title"] = "这里是标题", ["desp"] = "{msg}" }
 -- BARK_KEY = ""
 
 -- dingtalk 通知配置, https://open.dingtalk.com/document/robots/custom-robot-access
+-- 自定义关键词方式可填写 ":" "#" "号码"
+-- 如果是加签方式, 请填写 DINGTALK_SECRET, 否则留空为自定义关键词方式, https://open.dingtalk.com/document/robots/customize-robot-security-settings
 -- DINGTALK_WEBHOOK = "https://oapi.dingtalk.com/robot/send?access_token=xxx"
+-- DINGTALK_SECRET = ""
 
 -- feishu 通知配置, https://open.feishu.cn/document/ukTMukTMukTM/ucTM5YjL3ETO24yNxkjN
 -- FEISHU_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
