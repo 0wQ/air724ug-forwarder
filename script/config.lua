@@ -136,3 +136,6 @@ RNDIS_ENABLE = false
 
 -- 状态指示灯开关
 LED_ENABLE = true
+
+-- SIM 卡 pin 码
+PIN_CODE = ""

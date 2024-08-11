@@ -18,6 +18,23 @@ local oper_data = {
     ["46015"] = { "CB", "中国广电" },
 }
 
+--- 验证 pin 码
+function util_mobile.pinVerify()
+    local pin_code = nvm.get("PIN_CODE")
+    if type(pin_code) ~= "string" or pin_code == "" then
+        log.warn("util_mobile.pinVerify", "PIN_CODE 未配置")
+        return
+    end
+
+    pin_code = tostring(pin_code or "")
+    if #pin_code < 4 or #pin_code > 8 then
+        log.warn("util_mobile.pinVerify", "PIN_CODE 长度错误")
+        return
+    end
+
+    ril.request("AT+CPIN=\"" .. pin_code .. "\"")
+end
+
 --- 获取 MCC 和 MNC
 -- @return (string) MCCMNC 代码
 function getMccMnc()

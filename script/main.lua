@@ -117,6 +117,13 @@ sys.taskInit(function()
     sys.timerLoopStart(util_ntp.sync, 1000 * 30)
 end)
 
+-- 验证 PIN 码
+sys.subscribe("SIM_IND", function(msg)
+    if msg == "SIM_PIN" then
+        util_mobile.pinVerify()
+    end
+end)
+
 -- 系统初始化
 sys.init(0, 0)
 sys.run()
