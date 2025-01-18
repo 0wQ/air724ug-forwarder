@@ -193,7 +193,7 @@ local options = {
             else
                 ril.request("AT+RNDISCALL=0,0")
             end
-            tts("网卡 " .. (nvm.get("RNDIS_ENABLE") and "开" or "关"))
+            tts("作为网卡 " .. (nvm.get("RNDIS_ENABLE") and "开" or "关"))
         end,
     },
     {
