@@ -32,6 +32,7 @@ require "handler_powerkey"
 require "handler_sms"
 require "usbmsc"
 require "handler_mqtt"
+
 -- 输出音频通道选项, 0:听筒 1:耳机 2:喇叭
 -- 输入音频通道选项, 0:main_mic 1:auxiliary_mic 3:headphone_mic_left 4:headphone_mic_right
 
@@ -97,11 +98,17 @@ pins.setup(23, function(msg)
 end, pio.PULLDOWM)
 
 sys.taskInit(function()
-    -- 等待网络就绪
-    sys.waitUntil("IP_READY_IND", 1000 * 60 * 2)
 
-    -- 等待获取 Band 值
-    -- sys.wait(1000 * 5)
+    -- 等待网络就绪
+    while true do
+        if sys.waitUntil("IP_READY_IND", 1000 * 60 * 2) then
+            log.info("NET", "网络已就绪")
+            break
+        else
+            log.warn("NET", "网络连接超时，准备重启")
+            rtos.reboot()
+        end
+    end
 
     -- 开机通知
     if nvm.get("BOOT_NOTIFY") then
@@ -116,7 +123,6 @@ sys.taskInit(function()
     -- 开机同步时间
     util_ntp.sync()
     sys.timerLoopStart(util_ntp.sync, 1000 * 30)
- 
 end)
 
 -- 验证 PIN 码

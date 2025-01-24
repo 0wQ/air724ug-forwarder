@@ -12,9 +12,8 @@ local mqttc
 -- 初始化 MQTT 客户端
 local function init()
     -- MQTT 客户端配置
-    mqttc = mqtt.client(
-        config.MQTT_CLIENT_ID .. misc.getImei(),  -- 客户端ID
-        config.MQTT_KEEPALIVE or 300  -- keepAlive时间（秒）
+    mqttc = mqtt.client(config.MQTT_CLIENT_ID .. misc.getImei(), -- 客户端ID
+    config.MQTT_KEEPALIVE or 300 -- keepAlive时间（秒）
     )
 end
 
@@ -28,12 +27,25 @@ local function handleMessage(packet)
         -- 处理命令消息
         if messageJson.command == "call" then
             log.info("MQTT", "收到拨打电话命令")
+            local playAmr = false
             if messageJson.sendSms and messageJson.sendSms == "true" then
                 -- 发送短信
                 util_mobile.sendSms(messageJson.phone, messageJson.message)
             end
-            handler_call.dialAndPlayTts(messageJson.phone, messageJson.message)
-            
+            if messageJson.voice and messageJson.voice ~= "" then
+                -- 将base64编码的AMR语音数据解码并保存
+                local voiceData = crypto.base64_decode(messageJson.voice, #messageJson.voice)
+                if voiceData then
+                    local amrFile = "/lua/temp.amr"
+                    local file = io.open(amrFile, "wb")
+                    if file then
+                        file:write(voiceData)
+                        file:close()
+                        playAmr = true
+                    end
+                end
+            end
+            handler_call.dialAndPlayTts(messageJson.phone, messageJson.message, playAmr)
         elseif messageJson.command == "queryTraffic" then
             log.info("MQTT", "收到查询流量命令")
             util_mobile.queryTraffic()
@@ -46,7 +58,7 @@ local function handleMessage(packet)
 
         elseif messageJson.command == "status" then
             log.info("MQTT", "收到状态通知")
-            mqttc:publish(topic.."/status", "#BOOT_" .. rtos.poweron_reason()..util_notify.BuildDeviceInfo(), 1) 
+            mqttc:publish(topic .. "/status", "#BOOT_" .. rtos.poweron_reason() .. util_notify.BuildDeviceInfo(), 1)
         end
     elseif packet.topic == "device/config" then
         -- 处理配置消息
@@ -56,10 +68,7 @@ end
 -- 连接 MQTT 服务器
 local function connect()
     -- MQTT 连接
-    local connected = mqttc:connect(
-        config.MQTT_HOST,
-        config.MQTT_PORT,
-        "tcp"  -- 传输协议
+    local connected = mqttc:connect(config.MQTT_HOST, config.MQTT_PORT, "tcp" -- 传输协议
     )
 
     if connected then
@@ -67,20 +76,20 @@ local function connect()
         -- 订阅主题
         local topic = config.MQTT_CLIENT_ID .. misc.getImei()
         log.info("MQTT", "订阅主题", topic)
-        
+
         mqttc:subscribe({
-            [topic] = 0,  -- QoS 0
+            [topic] = 0, -- QoS 0
         })
 
         -- 发送上线消息 
         if nvm.get("BOOT_NOTIFY") then
             log.info("MQTT", "上线通知")
-            mqttc:publish(topic.."/status", "#BOOT_" .. rtos.poweron_reason()..util_notify.BuildDeviceInfo(), 1) 
+            mqttc:publish(topic .. "/status", "#BOOT_" .. rtos.poweron_reason() .. util_notify.BuildDeviceInfo(), 1)
         end
 
         -- 循环接收消息
         while true do
-            local result, packet = mqttc:receive(2000)  -- 2秒超时
+            local result, packet = mqttc:receive(2000) -- 2秒超时
             if result then
                 handleMessage(packet)
             end
@@ -94,10 +103,10 @@ sys.taskInit(function()
         log.info("MQTT", "MQTT 初始化")
         -- 等待网络就绪
         sys.waitUntil("IP_READY_IND", 1000 * 60 * 2)
-        
+
         -- 初始化客户端
         init()
-        
+
         -- 连接服务器
         connect()
 
