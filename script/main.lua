@@ -31,7 +31,7 @@ require "handler_call"
 require "handler_powerkey"
 require "handler_sms"
 require "usbmsc"
-
+require "handler_mqtt"
 -- 输出音频通道选项, 0:听筒 1:耳机 2:喇叭
 -- 输入音频通道选项, 0:main_mic 1:auxiliary_mic 3:headphone_mic_left 4:headphone_mic_right
 
@@ -49,6 +49,7 @@ audiocore.setpa(audiocore.CLASS_D)
 -- 配置外部 PA
 -- pins.setup(pio.P0_14, 0)
 -- audiocore.pa(pio.P0_14, 1, 0, 0)
+
 -- audio.setChannel(1)
 
 -- 设置睡眠等待时间
@@ -115,6 +116,7 @@ sys.taskInit(function()
     -- 开机同步时间
     util_ntp.sync()
     sys.timerLoopStart(util_ntp.sync, 1000 * 30)
+ 
 end)
 
 -- 验证 PIN 码

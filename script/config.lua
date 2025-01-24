@@ -17,7 +17,7 @@ module(...)
 
 -- 通知类型, 支持配置多个
 -- NOTIFY_TYPE = { "custom_post", "telegram", "pushdeer", "bark", "dingtalk", "feishu", "wecom", "pushover", "inotify", "next-smtp-proxy", "gotify", "serverchan" }
-NOTIFY_TYPE = { "custom_post" }
+NOTIFY_TYPE = { "bark" }
 
 -- custom_post 通知配置, 自定义 POST 请求
 -- CUSTOM_POST_CONTENT_TYPE 支持 application/x-www-form-urlencoded 和 application/json
@@ -35,8 +35,8 @@ CUSTOM_POST_BODY_TABLE = { ["title"] = "这里是标题", ["desp"] = "{msg}" }
 -- PUSHDEER_KEY = ""
 
 -- bark 通知配置, https://github.com/Finb/Bark
--- BARK_API = "https://api.day.app"
--- BARK_KEY = ""
+BARK_API = "https://api.day.app"
+BARK_KEY = ""
 
 -- dingtalk 通知配置, https://open.dingtalk.com/document/robots/custom-robot-access
 -- 自定义关键词方式可填写 ":" "#" "号码"
@@ -123,7 +123,7 @@ CALL_IN_ACTION = 1
 -------------------------------------------------- 其他配置 --------------------------------------------------
 
 -- 扬声器音量, 0-7
-AUDIO_VOLUME = 1
+AUDIO_VOLUME = 3
 
 -- 通话音量 0-7
 CALL_VOLUME = 0
@@ -139,3 +139,12 @@ LED_ENABLE = true
 
 -- SIM 卡 pin 码
 PIN_CODE = ""
+
+-- MQTT配置
+MQTT_ENABLE = true
+MQTT_HOST = "broker.emqx.io"  -- MQTT服务器地址
+MQTT_PORT = 1883              -- MQTT服务器端口
+MQTT_CLIENT_ID = "air724ug_"
+MQTT_USERNAME = ""            -- MQTT用户名,根据需要配置
+MQTT_PASSWORD = ""            -- MQTT密码,根据需要配置
+MQTT_KEEPALIVE = 240          -- 心跳时间,单位秒

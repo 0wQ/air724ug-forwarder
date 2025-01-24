@@ -304,7 +304,7 @@ local notify = {
 
 --- 构建设备信息字符串, 用于追加到通知消息中
 -- @return (string) 设备信息
-local function buildDeviceInfo()
+function BuildDeviceInfo()
     local msg = "\n"
 
     -- 本机号码
@@ -403,7 +403,7 @@ function send(msg, channel)
 
     -- 通知内容追加设备信息
     if config.NOTIFY_APPEND_MORE_INFO then
-        msg = msg .. buildDeviceInfo()
+        msg = msg .. BuildDeviceInfo()
     end
 
     -- 发送通知

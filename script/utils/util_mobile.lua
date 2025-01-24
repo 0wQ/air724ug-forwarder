@@ -3,17 +3,17 @@ module(..., package.seeall)
 -- 运营商代码 & 流量查询短信
 local oper_data = {
     -- 中国移动
-    ["46000"] = { "CM", "中国移动", { "10086", "CXLL" } },
-    ["46002"] = { "CM", "中国移动", { "10086", "CXLL" } },
-    ["46007"] = { "CM", "中国移动", { "10086", "CXLL" } },
+    ["46000"] = { "CM", "中国移动", { "10086", "CXLL", "YE" } },
+    ["46002"] = { "CM", "中国移动", { "10086", "CXLL", "YE" } },
+    ["46007"] = { "CM", "中国移动", { "10086", "CXLL", "YE" } },
     -- 中国联通
-    ["46001"] = { "CU", "中国联通", { "10010", "2082" } },
-    ["46006"] = { "CU", "中国联通", { "10010", "2082" } },
-    ["46009"] = { "CU", "中国联通", { "10010", "2082" } },
+    ["46001"] = { "CU", "中国联通", { "10010", "2082", "102" } },
+    ["46006"] = { "CU", "中国联通", { "10010", "2082", "102" } },
+    ["46009"] = { "CU", "中国联通", { "10010", "2082", "102" } },
     -- 中国电信
-    ["46003"] = { "CT", "中国电信", { "10001", "108" } },
-    ["46005"] = { "CT", "中国电信", { "10001", "108" } },
-    ["46011"] = { "CT", "中国电信", { "10001", "108" } },
+    ["46003"] = { "CT", "中国电信", { "10001", "108", "102" } },
+    ["46005"] = { "CT", "中国电信", { "10001", "108", "102" } },
+    ["46011"] = { "CT", "中国电信", { "10001", "108", "102" } },
     -- 中国广电
     ["46015"] = { "CB", "中国广电" },
 }
@@ -75,6 +75,29 @@ function queryTraffic()
         sys.taskInit(sms.send, oper[3][1], sms_content_to_be_sent_gb2312)
     else
         log.warn("util_mobile.queryTraffic", "查询流量代码未配置")
+    end
+end
+
+--- 发送查询话费余额短信
+function queryBalance()
+    local mcc_mnc = getMccMnc()
+
+    local oper = oper_data[mcc_mnc]
+    if oper and oper[3] then
+        -- 发短信之前要先把内容转码成 GB2312
+        local sms_content_to_be_sent_gb2312 = common.utf8ToGb2312(oper[3][3])
+        -- 发送短信
+        sys.taskInit(sms.send, oper[3][1], sms_content_to_be_sent_gb2312)
+    else
+        log.warn("util_mobile.queryBalance", "查询话费余额代码未配置")
+    end
+end
+
+--- 发送短信
+function sendSms(phone, message)
+    local phones = phone:split(",")
+    for _, phone in ipairs(phones) do
+        sys.taskInit(sms.send, phone, message)
     end
 end
 
