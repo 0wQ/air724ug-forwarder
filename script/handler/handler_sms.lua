@@ -30,9 +30,9 @@ end
 -- @param sender_number (string) 短信发送者号码
 -- @return (boolean) 如果号码符合条件则返回 true，否则返回 false
 local function isWhiteListNumber(sender_number)
-    -- 判断如果未设置白名单号码, 允许所有号码触发
+    -- 判断如果未设置白名单号码, 禁止所有号码触发
     if type(config.SMS_CONTROL_WHITELIST_NUMBERS) ~= "table" or #config.SMS_CONTROL_WHITELIST_NUMBERS == 0 then
-        return true
+        return false
     end
     -- 已设置白名单号码, 判断是否在白名单中
     return isElementInTable(config.SMS_CONTROL_WHITELIST_NUMBERS, sender_number)
