@@ -93,7 +93,7 @@ pins.setup(23, function(msg)
         log.info("SIM_DETECT", "拔卡")
         rtos.notify_sim_detect(1, 0)
     end
-end, pio.PULLDOWM)
+end, pio.PULLUP)
 
 sys.taskInit(function()
     -- 等待网络就绪
